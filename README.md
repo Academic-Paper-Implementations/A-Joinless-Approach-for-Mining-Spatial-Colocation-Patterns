@@ -1,54 +1,40 @@
-# Kho Tri Thức AI: Chung tay Implement Paper
+# A Joinless Approach for Mining Spatial Colocation Patterns
 
-Chào mừng bạn đến với kho lưu trữ chung của chúng ta!
+## 📋 Tổng quan
+Dự án này cài đặt thuật toán từ bài báo **"A Joinless Approach for Mining Spatial Colocation Patterns"**.
+Mục tiêu là khai phá các mẫu co-location trong dữ liệu không gian mà không cần thực hiện phép nối (join) đắt đỏ, thay vào đó sử dụng cấu trúc **Star Neighborhood**.
 
-Đây là nơi mọi người cùng nhau đọc, hiểu, và implement (tái hiện) lại các bài báo khoa học (paper) trong lĩnh vực Trí tuệ Nhân tạo, bao gồm:
-* Học sâu (Deep Learning)
-* Thị giác Máy tính (Computer Vision)
-* Xử lý Ngôn ngữ Tự nhiên (NLP)
-* Mô hình Ngôn ngữ Lớn (LLM)
-* Khai phá Dữ liệu (Data Mining)
-* Và bất kỳ chủ đề AI thú vị nào khác!
+## 📄 Paper
+* **Tên bài báo:** A Joinless Approach for Mining Spatial Colocation Patterns
+* **Link:** [PDF](./joinless_algorithm.pdf) hoặc [Online](https://sci-hub.hlgczx.com/10.1109/tkde.2006.150)
 
-## 🎯 Mục tiêu
-* **Học hỏi:** Biến lý thuyết hàn lâm thành code chạy được.
-* **Chia sẻ:** Tạo một nơi lưu trữ tập trung, dễ tìm kiếm cho các thuật toán.
-* **Cộng tác:** Cùng nhau review code để nâng cao kỹ năng.
+## 📂 Cấu trúc Dự án
+* `build_dataset.py`: Chứa các cấu trúc dữ liệu chính (SpatialInstance, StarNeighborhood, Clique, ...) và logic xây dựng dataset.
+* `test.ipynb`: Notebook kiểm thử và minh họa cách sử dụng.
+* `README_BUILD_DATASET.md`: Tài liệu chi tiết về module `build_dataset.py`.
+* `data/`: Thư mục chứa dữ liệu (ví dụ: LasVegas dataset).
 
----
+## 🚀 Cách sử dụng
 
-## ⚡ Bạn là người mới? Bắt đầu từ đây!
+### 1. Cài đặt môi trường
+Đảm bảo bạn đã cài đặt các thư viện cần thiết (xem `requirements.txt` nếu có, hoặc cài `pandas`, `numpy`).
 
-Bạn có hai lựa chọn:
+### 2. Xây dựng Dataset
+Sử dụng `build_dataset.py` để chuyển đổi dữ liệu CSV thành cấu trúc Star Neighborhood.
 
-1.  **Tôi muốn TÌM HIỂU / CHẠY THỬ code có sẵn:**
-    * Xem **Mục Lục Paper** ở dưới để tìm chủ đề bạn quan tâm.
-    * Làm theo hướng dẫn ở file `DATA_README.md` để tải data (dữ liệu) về máy và chạy code.
+```python
+from build_dataset import load_or_build_dataset
 
-2.  **Tôi muốn ĐÓNG GÓP / implement một paper mới:**
-    * Đây là điều tuyệt vời nhất!
-    * Hãy đọc kỹ file `CONTRIBUTING.md` để xem hướng dẫn chi tiết từng bước (kể cả khi bạn mới dùng Git).
+csv_path = "data/LasVegas_x_y_alphabet_version_03_2.csv"
+cache_path = "LasVegas_cache.pkl"
+distance_threshold = 160.0
 
----
+dataset = load_or_build_dataset(csv_path, cache_path, distance_threshold)
+print(f"Loaded {len(dataset.instances)} instances.")
+```
 
-## 📚 Mục Lục Các Paper (Đã và Đang Implement)
+### 3. Chạy thuật toán (Đang cập nhật)
+Hiện tại code tập trung vào việc xây dựng cấu trúc dữ liệu nền tảng (Star Neighborhoods). Phần thuật toán khai phá (mining) sẽ được cập nhật tiếp theo.
 
-Đây là danh sách các paper có trong repo. Hãy nhấn vào link `[Code]` để xem!
-
-| Tên Paper (Link tới PDF) | Lĩnh vực | Trạng thái | Người thực hiện | Link Code |
-| :--- | :--- | :--- | :--- | :--- |
-| **[A Joinless Approach for Mining Spatial Colocation Patterns)](https://sci-hub.hlgczx.com/10.1109/tkde.2006.150)** | `data mining`, `knowdledge discovery` | 🚧 Đang thực hiện | `@PhamXuanKhang` | [`./papers/spatial_data_mining/A_Joinless_Approach_for_Mining_Spatial_Colocation_Patterns`](./papers/spatial_data_mining/A_Joinless_Approach_for_Mining_Spatial_Colocation_Patterns) |
-| **[Large Language Model for Medical Images: A Survey of Taxonomy, Systematic Review, and Future Trends](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10856853)** | `LLM`, ` medical images` | 💡 Lên kế hoạch | (Chưa có) | (Chưa có) |
-| *(Thêm paper mới vào đây)* | | | | |
-
-**Trạng thái:**
-* 💡 `Lên kế hoạch`: Paper đã được đề xuất, cần người làm.
-* 🚧 `Đang thực hiện`: Đã có người nhận và đang code.
-* ✅ `Hoàn thành`: Đã code xong, review và merge.
-
----
-
-## 🔗 Các liên kết quan trọng
-
-* **[Hướng dẫn Đóng góp (Git)](./CONTRIBUTING.md):** Hướng dẫn A-Z cho người mới.
-* **[Hướng dẫn Dữ liệu (DVC)](./DATA_README.md):** Cách tải/thêm data (dataset) lớn.
+## 🤝 Đóng góp
+Tham khảo `CONTRIBUTING.md` để biết cách đóng góp vào dự án.
