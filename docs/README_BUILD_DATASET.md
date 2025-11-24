@@ -2,11 +2,11 @@
 
 ## 📋 Tổng quan
 
-File `build_dataset.py` cung cấp các cấu trúc dữ liệu và hàm tiện ích để xử lý dữ liệu không gian cho thuật toán **Joinless Co-location Pattern Mining**. File này chuyển đổi dữ liệu CSV thành các cấu trúc dữ liệu phù hợp cho việc khai phá pattern co-location.
+Module `joinless` (nằm trong `src/python/joinless`) cung cấp các cấu trúc dữ liệu và hàm tiện ích để xử lý dữ liệu không gian cho thuật toán **Joinless Co-location Pattern Mining**. Module này chuyển đổi dữ liệu CSV thành các cấu trúc dữ liệu phù hợp cho việc khai phá pattern co-location.
 
 ## 🎯 Mục đích
 
-File này giúp bạn:
+Module này giúp bạn:
 
 - Load dữ liệu từ file CSV (LasVegas dataset)
 - Tổ chức dữ liệu thành các cấu trúc phù hợp với thuật toán
@@ -17,6 +17,8 @@ File này giúp bạn:
 ---
 
 ## 📦 Các Class và Cấu trúc Dữ liệu
+
+Các class này được định nghĩa trong `src/python/joinless/structures.py`.
 
 ### 1. **SpatialInstance**
 
@@ -226,11 +228,16 @@ class SpatialDataset:
 Hàm này tự động kiểm tra cache và chỉ build lại khi cần thiết.
 
 ```python
-from build_dataset import load_or_build_dataset
+# Đảm bảo bạn đã thêm src/python vào sys.path
+import sys
+import os
+sys.path.append(os.path.abspath("src/python"))
+
+from joinless import load_or_build_dataset
 
 # Định nghĩa đường dẫn
 csv_path = "data/LasVegas_x_y_alphabet_version_03_2.csv"
-cache_path = "LasVegas_cache.pkl"
+cache_path = "data/LasVegas_cache.pkl"
 distance_threshold = 160.0  # Ngưỡng khoảng cách
 
 # Load hoặc build dataset
@@ -267,7 +274,7 @@ print(f"Số lượng star neighborhoods: {len(dataset.star_neighborhoods)}")
 Nếu bạn muốn kiểm soát từng bước:
 
 ```python
-from build_dataset import load_spatial_dataset, SpatialDataset
+from joinless import load_spatial_dataset, SpatialDataset
 
 # 1. Load từ CSV
 dataset = load_spatial_dataset("data/LasVegas_x_y_alphabet_version_03_2.csv")
@@ -280,7 +287,7 @@ dataset.build_neighbor_relations(threshold=distance_threshold)
 dataset.build_star_neighborhoods()
 
 # 4. (Tùy chọn) Lưu vào file để tái sử dụng
-dataset.save_to_file("LasVegas_cache.pkl")
+dataset.save_to_file("data/LasVegas_cache.pkl")
 ```
 
 ---
@@ -288,10 +295,10 @@ dataset.save_to_file("LasVegas_cache.pkl")
 ### Cách 3: Load từ file đã lưu
 
 ```python
-from build_dataset import SpatialDataset
+from joinless import SpatialDataset
 
 # Load dataset đã được build sẵn
-dataset = SpatialDataset.load_from_file("LasVegas_cache.pkl")
+dataset = SpatialDataset.load_from_file("data/LasVegas_cache.pkl")
 
 # Sử dụng ngay, không cần tính toán lại
 print(f"Dataset đã có {len(dataset.star_neighborhoods)} star neighborhoods")
@@ -346,7 +353,7 @@ for i, relation in enumerate(list(dataset.neighbor_relations)[:5]):
 ### Ví dụ 4: Tính toán participation index cho pattern
 
 ```python
-from build_dataset import ColocationPattern, Clique
+from joinless import ColocationPattern, Clique
 
 # Giả sử bạn đã tìm được một pattern
 pattern = ColocationPattern(
@@ -392,10 +399,17 @@ for threshold in [100.0, 160.0, 200.0, 500.0]:
 Sau khi chạy, bạn sẽ có:
 
 ```
-papers/Joinless/
-├── build_dataset.py          # File này
-├── LasVegas_cache.pkl        # Cache file (tự động tạo)
-└── ...
+src/python/joinless/
+├── structures.py             # Định nghĩa các class
+├── data_loader.py            # Hàm load và build dataset
+├── mining.py                 # Thuật toán khai phá (đang phát triển)
+└── __init__.py               # Expose các module
+```
+
+Và file cache (nếu dùng `load_or_build_dataset`):
+```
+data/
+└── LasVegas_cache.pkl        # Cache file (tự động tạo)
 ```
 
 **Lưu ý:** Nên thêm `*.pkl` vào `.gitignore` vì đây là file cache, không cần commit.
@@ -450,4 +464,4 @@ papers/Joinless/
 
 ## 🤝 Hỗ trợ
 
-Nếu có thắc mắc về cấu trúc dữ liệu hoặc cách sử dụng, hãy xem code comments trong file `build_dataset.py` hoặc liên hệ nhóm phát triển.
+Nếu có thắc mắc về cấu trúc dữ liệu hoặc cách sử dụng, hãy xem code comments trong file `src/python/joinless/structures.py` hoặc liên hệ nhóm phát triển.
