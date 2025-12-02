@@ -13,7 +13,8 @@ int main(int argc, char* argv[]) {
     std::cout << "Running Joinless with d=" << config.neighborDistance << "...\n";
 
     // 2. Load Data
-    // auto instances = DataLoader::load_csv(config.datasetPath);
+    auto instances = DataLoader::load_csv(config.datasetPath);
+    std::cout << "Loaded " << instances.size() << " spatial instances.\n";
 
     // // 3. Build Spatial Index (Truyền tham số d từ config)
     // SpatialIndex spatial_idx(config.neighborDistance);
