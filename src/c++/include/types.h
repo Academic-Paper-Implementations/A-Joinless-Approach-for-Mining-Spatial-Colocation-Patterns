@@ -4,7 +4,7 @@
 
 // Type aliases for feature types and instance IDs
 using FeatureType = std::string;
-using instanceID = int;
+using instanceID = std::string;
 
 // Type aliases for colocation features and their instances
 using Colocation = std::vector<FeatureType>;

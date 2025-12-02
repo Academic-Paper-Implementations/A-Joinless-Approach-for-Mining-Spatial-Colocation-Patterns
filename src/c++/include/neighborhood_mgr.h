@@ -12,7 +12,7 @@ private:
 
 public:
     void buildFromPairs(const std::vector<SpatialInstance>& instances,
-                        const std::vector<std::pair<int, int>>& pairs);
+                        const std::vector<std::pair<SpatialInstance, SpatialInstance>>& pairs);
 
     const StarNeighborhood* getStarNeighborhood(instanceID id) const;
     const std::unordered_map<instanceID, StarNeighborhood>& getAllStarNeighborhoods() const;
