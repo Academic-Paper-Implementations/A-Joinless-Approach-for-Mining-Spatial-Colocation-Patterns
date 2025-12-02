@@ -24,11 +24,11 @@ AppConfig ConfigLoader::load(const std::string& configPath) {
             std::string value;
             if (std::getline(is_line, value)) {
                 // Trim whitespace
-                if (key == "datasetPath") config.datasetPath = value;
-                else if (key == "neighborDistance") config.neighborDistance = std::stod(value);
-                else if (key == "minPrev") config.minPrev = std::stod(value);
-                else if (key == "minCondProb") config.minCondProb = std::stod(value);
-                else if (key == "debugMode") config.debugMode = (value == "true" || value == "1");
+                if (key == "dataset_path") config.datasetPath = value;
+                else if (key == "neighbor_distance") config.neighborDistance = std::stod(value);
+                else if (key == "min_prevalence") config.minPrev = std::stod(value);
+                else if (key == "min_cond_prob") config.minCondProb = std::stod(value);
+                else if (key == "debug_mode") config.debugMode = (value == "true" || value == "1");
             }
         }
     }
