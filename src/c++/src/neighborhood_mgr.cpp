@@ -1,4 +1,5 @@
 #include "neighborhood_mgr.h"
+#include <algorithm>
 
 void NeighborhoodMgr::buildFromPairs(const std::vector<SpatialInstance>& instances,
                                     const std::vector<std::pair<instanceID, instanceID>>& pairs) {
@@ -14,9 +15,17 @@ void NeighborhoodMgr::buildFromPairs(const std::vector<SpatialInstance>& instanc
             it1->second.neighbors.push_back(starNeighborhoods[pair.second].center);
         }
     }
+/* Sort the key and value in starNeighborhoods*/
+    for (auto& [id, starNeigh] : starNeighborhoods) {
+        std::sort(starNeigh.neighbors.begin(), starNeigh.neighbors.end(),
+                  [](const SpatialInstance* a, const SpatialInstance* b) {
+                      return a->id < b->id;
+                  });
+    }
+
     return;
 }
 
-const std::unordered_map<instanceID, StarNeighborhood>& NeighborhoodMgr::getAllStarNeighborhoods() const {
+const std::map<instanceID, StarNeighborhood>& NeighborhoodMgr::getAllStarNeighborhoods() const {
     return starNeighborhoods;
 }
