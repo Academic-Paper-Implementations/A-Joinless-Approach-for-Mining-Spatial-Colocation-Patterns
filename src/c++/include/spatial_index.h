@@ -18,5 +18,5 @@ public:
     SpatialIndex(double distThresh);
 
     // Find all neighbor pairs within the distance threshold
-    std::vector<std::pair<const SpatialInstance*, const SpatialInstance*>> findNeighborPair(const std::vector<SpatialInstance>& instances);
+    std::vector<std::pair<instanceID, instanceID>> findNeighborPair(const std::vector<SpatialInstance>& instances);
 };
