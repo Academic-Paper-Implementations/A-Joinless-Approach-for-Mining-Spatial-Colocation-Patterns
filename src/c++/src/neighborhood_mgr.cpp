@@ -16,3 +16,7 @@ void NeighborhoodMgr::buildFromPairs(const std::vector<SpatialInstance>& instanc
     }
     return;
 }
+
+const std::unordered_map<instanceID, StarNeighborhood>& NeighborhoodMgr::getAllStarNeighborhoods() const {
+    return starNeighborhoods;
+}

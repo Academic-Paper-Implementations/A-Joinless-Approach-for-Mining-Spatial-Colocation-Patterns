@@ -22,6 +22,12 @@ int main(int argc, char* argv[]) {
     // 4. Materialize Neighborhoods
     NeighborhoodMgr neighbor_mgr;
     neighbor_mgr.buildFromPairs(instances, neighborPairs);
+    for (const auto& [id, starNeigh] : neighbor_mgr.getAllStarNeighborhoods()) {
+        std::cout << "Instance " << id << " has " << starNeigh.neighbors.size() << " neighbors.\n";
+        for (const auto* neighbor : starNeigh.neighbors) {
+            std::cout << "  Neighbor ID: " << neighbor->id << "\n";
+        }
+    }
 
     // // 5. Mining (Truyền threshold từ config)
     // JoinlessMiner miner(config.min_prevalence, &neighbor_mgr);
