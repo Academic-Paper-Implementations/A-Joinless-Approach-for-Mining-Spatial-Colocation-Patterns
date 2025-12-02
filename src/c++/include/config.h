@@ -22,10 +22,10 @@ struct AppConfig {
 
     // Constructor with default values
     AppConfig()
-        : datasetPath("data/sample_joinless.csv"),
+        : datasetPath("data/sample_data.csv"),
           outputPath("src/c++/output/rules.txt"),
-          neighborDistance(10.0),
-          minPrev(0.3),
+          neighborDistance(5.0),
+          minPrev(0.6),
           minCondProb(0.5),
           debugMode(false) {}
 };
