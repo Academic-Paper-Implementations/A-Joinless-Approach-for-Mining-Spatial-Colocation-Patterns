@@ -17,3 +17,5 @@ env/
 
 # Bỏ qua file notebook checkpoints
 .ipynb_checkpoints/
+
+*.exe
