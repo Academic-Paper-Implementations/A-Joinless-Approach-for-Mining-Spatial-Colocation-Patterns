@@ -13,7 +13,7 @@ private:
  
     std::vector <ColocationInstance> filterStarInstances(
         const std::vector<Colocation>& candidates,
-        const std::vector<SpatialInstance>& instances
+        const std::unordered_map<FeatureType, std::vector<StarNeighborhood>>& starNeighborhood
     );
 
     std::vector <ColocationInstance> filterCliqueInstances(
@@ -23,7 +23,7 @@ private:
     );
 
 public:
-    JoinlessMiner(double minPrevalence, NeighborhoodMgr* nbrMgr);
+    JoinlessMiner(double minPrevalence, NeighborhoodMgr* nbrMgr, const std::vector<SpatialInstance>& instances);
     // Public method
     std::vector<Colocation> generateCandidates(
         const std::vector<Colocation>& prevPrevalent, 

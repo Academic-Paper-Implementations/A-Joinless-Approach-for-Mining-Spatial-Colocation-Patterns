@@ -5,8 +5,31 @@
 #include <set>
 #include <string>
 
-JoinlessMiner::JoinlessMiner(double minPrev, NeighborhoodMgr* neighborMgr)
+JoinlessMiner::JoinlessMiner(double minPrev, NeighborhoodMgr* neighborMgr, const std::vector<SpatialInstance>& instances)
     : minPrev(minPrev), neighborhoodMgr(neighborMgr) {
+    int k = 2;
+    std::vector<FeatureType> types = getAllObjectTypes(instances);
+    std::vector<Colocation> prevColocations;
+    for (auto t : types) prevColocations.push_back({t});
+
+    while (!prevColocations.empty()) {
+        std::vector<Colocation> candidates = generateCandidates(
+            std::vector<Colocation>(prevColocations.begin(), prevColocations.end()), 
+            k, 
+            instances
+        );
+        for (int i=0; i<getAllObjectTypes(instances).size(); ++i) {
+            for (const auto& starNeighborhood: neighborhoodMgr->getAllStarNeighborhoods()) {   
+                if (prevColocations[i][0]==starNeighborhood.first) {
+                    std::vector<ColocationInstance> starInstances = filterStarInstances(
+                        candidates,
+                        starNeighborhood,
+                    );
+                    }
+                }
+            }
+        }
+    }
 }
 
 std::vector<Colocation> JoinlessMiner::generateCandidates(
@@ -57,7 +80,7 @@ std::vector<Colocation> JoinlessMiner::generateCandidates(
 }
 
 std::vector<ColocationInstance> JoinlessMiner::filterStarInstances(const std::vector<Colocation>& candidates, 
-    const std::vector<SpatialInstance>& instances) {
+    const std::unordered_map<FeatureType, std::vector<StarNeighborhood>>& starNeighborhood) {
         
     std::vector<ColocationInstance> starInstances;
     
