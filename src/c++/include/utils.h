@@ -29,23 +29,3 @@ inline std::map<std::string, int> countInstancesByFeature(const std::vector<Spat
     return featureCount;
 }
 
-// Helper function: filter features that satisfy min_prevalence (for k=1)
-inline std::vector<std::string> filterPrevalentFeatures(
-    const std::vector<SpatialInstance>& instances,
-    double minPrevalence) 
-{
-    std::vector<std::string> prevalentFeatures;
-    int totalInstances = instances.size();
-    
-    auto featureCount = countInstancesByFeature(instances);
-    
-    for (const auto& [feature, count] : featureCount) {
-        double prevalenceIndex = static_cast<double>(count) / totalInstances;
-        
-        if (prevalenceIndex >= minPrevalence) {
-            prevalentFeatures.push_back(feature);
-        }
-    }
-    
-    return prevalentFeatures;
-}

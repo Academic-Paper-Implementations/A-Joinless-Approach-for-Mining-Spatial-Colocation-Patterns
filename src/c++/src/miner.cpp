@@ -17,11 +17,9 @@ std::vector<Colocation> JoinlessMiner::generateCandidates(
     std::vector<Colocation> candidates;
     
     if (k == 1) {
-        // Filter prevalent features from instances
-        auto prevalentFeatures = filterPrevalentFeatures(instances, minPrev);
-        
         // Create singleton colocation from prevalent features
-        for (const auto& feature : prevalentFeatures) {
+        auto allFeatures = getAllObjectTypes(instances);
+        for (const auto& feature : allFeatures) {
             candidates.push_back({feature});
         }
         

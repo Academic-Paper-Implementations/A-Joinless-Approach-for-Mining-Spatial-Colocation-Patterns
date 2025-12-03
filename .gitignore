@@ -19,3 +19,7 @@ env/
 .ipynb_checkpoints/
 
 *.exe
+
+#Bỏ qua file biên dịch C++
+main
+spatial_index
