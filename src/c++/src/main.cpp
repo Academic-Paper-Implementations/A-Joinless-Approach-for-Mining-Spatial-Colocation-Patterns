@@ -3,6 +3,7 @@
 #include "spatial_index.h"
 #include "neighborhood_mgr.h"
 #include "miner.h"
+#include "utils.h"
 #include <iostream>
 
 int main(int argc, char* argv[]) {
@@ -29,6 +30,39 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // 5. Test Mining - Generate Candidates
+    std::cout << "\n========== Testing Candidate Generation ==========\n";
+    
+    JoinlessMiner miner(config.minPrev, &neighbor_mgr);
+    
+    // Get number of features
+    auto allFeatures = getAllObjectTypes(instances);
+    int numFeatures = allFeatures.size();
+    
+    std::vector<Colocation> candidates = {};
+    
+    // Generate candidates for k=1 to k=numFeatures
+    for (int k = 1; k <= numFeatures; ++k) {
+        std::cout << "\nGenerating candidates for k=" << k << "...\n";
+        candidates = miner.generateCandidates(candidates, k, instances);
+        std::cout << "Number of k=" << k << " candidates: " << candidates.size() << "\n";
+        
+        for (const auto& candidate : candidates) {
+            std::cout << "  Candidate: ";
+            for (const auto& feature : candidate) {
+                std::cout << feature << " ";
+            }
+            std::cout << "\n";
+        }
+        
+        if (candidates.empty()) {
+            std::cout << "No more candidates. Stopping.\n";
+            break;
+        }
+    }
+    
+    std::cout << "\n========== Done ==========\n";
+    
     // // 5. Mining (Truyền threshold từ config)
     // JoinlessMiner miner(config.min_prevalence, &neighbor_mgr);
     // auto rules = miner.mine(objects);

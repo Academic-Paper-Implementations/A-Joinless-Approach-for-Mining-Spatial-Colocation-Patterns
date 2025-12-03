@@ -10,8 +10,7 @@ private:
     double minPrev;
     NeighborhoodMgr* neighborhoodMgr;
 
-    std::vector <Colocation> generateCandidates(const std::vector<Colocation>& prevPrevalent, int k);
-
+ 
     std::vector <ColocationInstance> filterStarInstances(
         const Colocation& candidate,
         const std::vector<SpatialInstance>& instances
@@ -25,6 +24,12 @@ private:
 
 public:
     JoinlessMiner(double minPrevalence, NeighborhoodMgr* nbrMgr);
+    // Public method
+    std::vector<Colocation> generateCandidates(
+        const std::vector<Colocation>& prevPrevalent, 
+        int k, 
+        const std::vector<SpatialInstance>& instances
+    );
 
     std::vector<ColocationRule> mineColocations(const std::vector<SpatialInstance>& instances);
 };
