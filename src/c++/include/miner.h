@@ -12,7 +12,7 @@ private:
 
  
     std::vector <ColocationInstance> filterStarInstances(
-        const Colocation& candidate,
+        const std::vector<Colocation>& candidates,
         const std::vector<SpatialInstance>& instances
     );
 

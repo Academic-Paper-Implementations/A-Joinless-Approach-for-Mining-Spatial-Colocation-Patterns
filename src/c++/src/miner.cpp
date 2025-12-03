@@ -55,3 +55,19 @@ std::vector<Colocation> JoinlessMiner::generateCandidates(
     
     return candidates;
 }
+
+std::vector<ColocationInstance> JoinlessMiner::filterStarInstances(const std::vector<Colocation>& candidates, 
+    const std::vector<SpatialInstance>& instances) {
+        
+    std::vector<ColocationInstance> starInstances;
+    
+    for (const auto& candidate: candidates) {
+        for (const auto& instance : instances) {
+            if (instance.type == candidate[0]) {
+                starInstances.push_back({instance.id});
+            }
+        }
+    }
+        
+    return starInstances;
+}

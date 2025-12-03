@@ -1,6 +1,6 @@
 #pragma once
 #include "types.h"
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 /*
@@ -8,14 +8,14 @@
     */
 class NeighborhoodMgr {
 private:
-    std::map<instanceID, StarNeighborhood> starNeighborhoods;
+    std::unordered_map<FeatureType, std::vector<StarNeighborhood>> starNeighborhoods;
 
 public:
     void buildFromPairs(const std::vector<SpatialInstance>& instances,
                         const std::vector<std::pair<instanceID, instanceID>>& pairs);
 
     const StarNeighborhood* getStarNeighborhood(instanceID id) const;
-    const std::map<instanceID, StarNeighborhood>& getAllStarNeighborhoods() const;
+    const std::unordered_map<FeatureType, std::vector<StarNeighborhood>>& getAllStarNeighborhoods() const;
 
     bool areNeighbors(instanceID id1, instanceID id2) const;
 };

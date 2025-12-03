@@ -19,14 +19,21 @@ int main(int argc, char* argv[]) {
     // 3. Build Spatial Index (Truyền tham số d từ config)
     SpatialIndex spatial_idx(config.neighborDistance);
     auto neighborPairs = spatial_idx.findNeighborPair(instances);
+    for (const auto& pair : neighborPairs) {
+        std::cout << "Neighbor Pair: " << pair.first << " - " << pair.second << "\n";
+    }
 
     // 4. Materialize Neighborhoods
     NeighborhoodMgr neighbor_mgr;
     neighbor_mgr.buildFromPairs(instances, neighborPairs);
-    for (const auto& [id, starNeigh] : neighbor_mgr.getAllStarNeighborhoods()) {
-        std::cout << "Instance " << id << " has " << starNeigh.neighbors.size() << " neighbors.\n";
-        for (const auto* neighbor : starNeigh.neighbors) {
-            std::cout << "  Neighbor ID: " << neighbor->id << "\n";
+    for (const auto& [feature, starNeighs] : neighbor_mgr.getAllStarNeighborhoods()) {
+        std::cout << "Feature: " << feature << "\n";
+        for (const auto& starNeigh : starNeighs) {
+            std::cout << "  Center: " << starNeigh.center->id << " Neighbors: ";
+            for (const auto& neighbor : starNeigh.neighbors) {
+                std::cout << neighbor->id << " ";
+            }
+            std::cout << "\n";
         }
     }
 

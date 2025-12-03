@@ -1,31 +1,35 @@
 #include "neighborhood_mgr.h"
+#include "utils.h"
 #include <algorithm>
 
 void NeighborhoodMgr::buildFromPairs(const std::vector<SpatialInstance>& instances,
                                     const std::vector<std::pair<instanceID, instanceID>>& pairs) {
-    for (const auto& instance : instances) {
-        starNeighborhoods[instance.id] = StarNeighborhood{&instance, {}};
-    };
-    for (const auto& pair : pairs) {
-        const instanceID& id1 = pair.first;
-
-        auto it1 = starNeighborhoods.find(id1);
-
-        if (it1 != starNeighborhoods.end()) {
-            it1->second.neighbors.push_back(starNeighborhoods[pair.second].center);
+    auto allFeatures = getAllObjectTypes(instances);
+    for (const auto& feature : allFeatures) {
+        starNeighborhoods[feature] = std::vector<StarNeighborhood>{};
+        for (const auto& instance : instances) {
+            if (instance.type == feature) {
+                StarNeighborhood starNeigh;
+                starNeigh.center = &instance;
+                starNeighborhoods[feature].push_back(starNeigh);
+                for (const auto& pair : pairs) {
+                    if (pair.first == instance.id) {
+                        // Find the neighbor instance
+                        auto it = std::find_if(instances.begin(), instances.end(),
+                                               [&](const SpatialInstance& inst) {
+                                                   return inst.id == pair.second;
+                                               });
+                        if (it != instances.end()) {
+                            starNeighborhoods[feature].back().neighbors.push_back(&(*it));
+                        }
+                    }
+                }
+            }
         }
-    }
-/* Sort the key and value in starNeighborhoods*/
-    for (auto& [id, starNeigh] : starNeighborhoods) {
-        std::sort(starNeigh.neighbors.begin(), starNeigh.neighbors.end(),
-                  [](const SpatialInstance* a, const SpatialInstance* b) {
-                      return a->id < b->id;
-                  });
-    }
-
+    };
     return;
 }
 
-const std::map<instanceID, StarNeighborhood>& NeighborhoodMgr::getAllStarNeighborhoods() const {
+const std::unordered_map<FeatureType, std::vector<StarNeighborhood>>& NeighborhoodMgr::getAllStarNeighborhoods() const {
     return starNeighborhoods;
 }
