@@ -20,62 +20,39 @@ int main(int argc, char* argv[]) {
     SpatialIndex spatial_idx(config.neighborDistance);
     auto neighborPairs = spatial_idx.findNeighborPair(instances);
     for (const auto& pair : neighborPairs) {
-        std::cout << "Neighbor Pair: " << pair.first << " - " << pair.second << "\n";
+        std::cout << "Neighbor Pair: " << pair.first.id << " - " << pair.second.id << "\n";
     }
 
     // 4. Materialize Neighborhoods
     NeighborhoodMgr neighbor_mgr;
-    neighbor_mgr.buildFromPairs(instances, neighborPairs);
-    for (const auto& [feature, starNeighs] : neighbor_mgr.getAllStarNeighborhoods()) {
-        std::cout << "Feature: " << feature << "\n";
-        for (const auto& starNeigh : starNeighs) {
-            std::cout << "  Center: " << starNeigh.center->id << " Neighbors: ";
-            for (const auto& neighbor : starNeigh.neighbors) {
+    neighbor_mgr.buildFromPairs(neighborPairs);
+    for (const auto& starNeighborhood : neighbor_mgr.getAllStarNeighborhoods()) {
+        std::cout << "Star Neighborhoods for Feature: " << starNeighborhood.first << "\n";
+        for (const auto& star : starNeighborhood.second) {
+            std::cout << "  Center: " << star.center->id << " Neighbors: ";
+            for (const auto& neighbor : star.neighbors) {
                 std::cout << neighbor->id << " ";
             }
             std::cout << "\n";
         }
     }
 
-    // 5. Test Mining - Generate Candidates
-    std::cout << "\n========== Testing Candidate Generation ==========\n";
-    
-    JoinlessMiner miner(config.minPrev, &neighbor_mgr);
-    
-    // Get number of features
-    auto allFeatures = getAllObjectTypes(instances);
-    int numFeatures = allFeatures.size();
-    
-    std::vector<Colocation> candidates = {};
-    
-    // Generate candidates for k=1 to k=numFeatures
-    for (int k = 1; k <= numFeatures; ++k) {
-        std::cout << "\nGenerating candidates for k=" << k << "...\n";
-        candidates = miner.generateCandidates(candidates, k, instances);
-        std::cout << "Number of k=" << k << " candidates: " << candidates.size() << "\n";
-        
-        for (const auto& candidate : candidates) {
-            std::cout << "  Candidate: ";
-            for (const auto& feature : candidate) {
+    // 5. Mine Colocation Patterns (Truyền tham số minPrev và minCondProb từ config)
+    JoinlessMiner miner;
+    auto rules = miner.mineColocations(config.minPrev, config.minCondProb, &neighbor_mgr, instances);
+    for (const auto& rule : rules) {
+        std::cout << "Colocation Rule:\n";
+        for (const auto& antecedent : rule) {
+            std::cout << "  Antecedent: ";
+            for (const auto& feature : antecedent.first) {
+                std::cout << feature << " ";
+            }
+            std::cout << " -> Consequent: ";
+            for (const auto& feature : antecedent.second) {
                 std::cout << feature << " ";
             }
             std::cout << "\n";
         }
-        
-        if (candidates.empty()) {
-            std::cout << "No more candidates. Stopping.\n";
-            break;
-        }
     }
-    
-    std::cout << "\n========== Done ==========\n";
-    
-    // // 5. Mining (Truyền threshold từ config)
-    // JoinlessMiner miner(config.min_prevalence, &neighbor_mgr);
-    // auto rules = miner.mine(objects);
-
-    // // 6. Output (Có thể thêm logic ghi file dựa trên config.output_path)
-    // // ...
-
     return 0;
 }

@@ -25,3 +25,15 @@ std::map<FeatureType, int> countInstancesByFeature(const std::vector<SpatialInst
     return featureCount;
 }
 
+
+SpatialInstance getInstanceByID(
+    const std::vector<SpatialInstance>& instances, 
+    const instanceID& id) 
+{
+    for (const auto& instance : instances) {
+        if (instance.id == id) {
+            return instance;
+        }
+    }
+    return SpatialInstance{};
+}

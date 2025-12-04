@@ -11,8 +11,7 @@ private:
     std::unordered_map<FeatureType, std::vector<StarNeighborhood>> starNeighborhoods;
 
 public:
-    void buildFromPairs(const std::vector<SpatialInstance>& instances,
-                        const std::vector<std::pair<instanceID, instanceID>>& pairs);
+    void buildFromPairs(const std::vector<std::pair<SpatialInstance, SpatialInstance>>& pairs);
 
     const StarNeighborhood* getStarNeighborhood(instanceID id) const;
     const std::unordered_map<FeatureType, std::vector<StarNeighborhood>>& getAllStarNeighborhoods() const;
