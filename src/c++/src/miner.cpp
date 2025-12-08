@@ -10,8 +10,8 @@ std::vector<ColocationRule> JoinlessMiner::mineColocations(double minPrev, doubl
     int k = 2;
     std::vector<FeatureType> types = getAllObjectTypes(instances);
     std::vector<Colocation> prevColocations;
-    std::vector<ColocationInstance> starInstances;
-    std::vector<ColocationInstance> cliqueInstances;
+    std::vector<SpatialInstance> starInstances;
+    std::vector<SpatialInstance> cliqueInstances;
     std::vector<ColocationRule> discoveredRules;
 
     for (auto t : types) prevColocations.push_back({t});
@@ -20,7 +20,7 @@ std::vector<ColocationRule> JoinlessMiner::mineColocations(double minPrev, doubl
         std::vector<Colocation> candidates = generateCandidates(prevColocations);
         for (auto t: types) {
             for (const auto& starNeigh : neighborhoodMgr->getAllStarNeighborhoods().at(t)) {
-                std::vector<ColocationInstance> found = filterStarInstances(candidates, starNeigh);
+                std::vector<SpatialInstance> found = filterStarInstances(candidates, starNeigh);
                 starInstances.insert(starInstances.end(), found.begin(), found.end());
             }
         }
@@ -117,6 +117,12 @@ std::vector<Colocation> JoinlessMiner::generateCandidates(
     return candidates;
 }
 
-std::vector<ColocationInstance> JoinlessMiner::filterStarInstances(const std::vector<Colocation>& candidates, 
-    const StarNeighborhood& starNeigh) {
+std::vector<SpatialInstance> JoinlessMiner::filterStarInstances(const std::vector<Colocation>& candidates, const StarNeighborhood& starNeigh) {
+    std::vector<SpatialInstance> found;
+    for (const Colocation colocation : candidates) {
+        if (starNeigh.center->type == colocation[0]) {
+            found.push_back(*starNeigh.center);
+        }
+    }
+    return found;
 }

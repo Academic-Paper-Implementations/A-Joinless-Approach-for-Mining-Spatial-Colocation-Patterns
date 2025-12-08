@@ -9,7 +9,6 @@ using instanceID = std::string;
 
 // Type aliases for colocation features and their instances
 using Colocation = std::vector<FeatureType>;
-using ColocationInstance = std::vector<instanceID>;
 using ColocationRule = std::unordered_map<Colocation, Colocation>;
 
 

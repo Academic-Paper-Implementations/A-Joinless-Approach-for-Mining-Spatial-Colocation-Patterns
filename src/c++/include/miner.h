@@ -11,25 +11,25 @@ private:
     NeighborhoodMgr* neighborhoodMgr;
 
  
-    std::vector <ColocationInstance> filterStarInstances(
+    std::vector <SpatialInstance> filterStarInstances(
         const std::vector<Colocation>& candidates,
         const StarNeighborhood& starNeigh
     );
 
-    std::vector <ColocationInstance> filterCliqueInstances(
+    std::vector <SpatialInstance> filterCliqueInstances(
         const std::vector<Colocation>& candidates,
-        const std::vector<ColocationInstance>& instances
+        const std::vector<SpatialInstance>& instances
     );
 
     std::vector<Colocation> selectCoarsePrevalent(
         const std::vector<Colocation>& candidates,
-        const std::vector<ColocationInstance>& instances,
+        const std::vector<SpatialInstance>& instances,
         double minPrev
     );
 
     std::vector<Colocation> selectPrevColocations(
         const std::vector<Colocation>& candidates,
-        const std::vector<ColocationInstance>& instances,
+        const std::vector<SpatialInstance>& instances,
         double minPrev
     );
 
