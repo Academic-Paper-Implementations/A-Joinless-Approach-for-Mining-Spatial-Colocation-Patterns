@@ -13,7 +13,7 @@ private:
  
     std::vector <ColocationInstance> filterStarInstances(
         const std::vector<Colocation>& candidates,
-        const StarNeighborhood& starNeigh
+        const std::pair<FeatureType, std::vector<StarNeighborhood>>& starNeigh
     );
 
     std::vector <ColocationInstance> filterCliqueInstances(

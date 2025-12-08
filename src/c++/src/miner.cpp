@@ -14,14 +14,17 @@ std::vector<ColocationRule> JoinlessMiner::mineColocations(double minPrev, doubl
     std::vector<ColocationInstance> cliqueInstances;
     std::vector<ColocationRule> discoveredRules;
 
+
     for (auto t : types) prevColocations.push_back({t});
 
     while (!prevColocations.empty()) {
         std::vector<Colocation> candidates = generateCandidates(prevColocations);
         for (auto t: types) {
-            for (const auto& starNeigh : neighborhoodMgr->getAllStarNeighborhoods().at(t)) {
-                std::vector<ColocationInstance> found = filterStarInstances(candidates, starNeigh);
-                starInstances.insert(starInstances.end(), found.begin(), found.end());
+            for (const auto& starNeigh : neighborhoodMgr->getAllStarNeighborhoods()) {
+                if (starNeigh.first == t){
+                    std::vector<ColocationInstance> found = filterStarInstances(candidates, starNeigh);
+                    starInstances.insert(starInstances.end(), found.begin(), found.end());
+                }
             }
         }
         if (k==2){
@@ -117,6 +120,64 @@ std::vector<Colocation> JoinlessMiner::generateCandidates(
     return candidates;
 }
 
-std::vector<ColocationInstance> JoinlessMiner::filterStarInstances(const std::vector<Colocation>& candidates, const StarNeighborhood& starNeigh) {
+
+std::vector<ColocationInstance> JoinlessMiner::filterStarInstances(
+    const std::vector<Colocation>& candidates, 
+    const std::pair<FeatureType, std::vector<StarNeighborhood>>& starNeigh) 
+{
+    std::vector<ColocationInstance> filteredInstances;
+    FeatureType centerType = starNeigh.first;
     
+    // Lọc candidate (Đoạn này OK)
+    std::vector<const Colocation*> relevantCandidates;
+    for (const auto& cand : candidates) {
+        if (!cand.empty() && cand[0] == centerType) {
+            relevantCandidates.push_back(&cand);
+        }
+    }
+
+    if (relevantCandidates.empty()) return filteredInstances;
+
+    // Duyệt qua các ngôi sao
+    for (const auto& star : starNeigh.second) {
+        
+        // --- SỬA LỖI TẠI ĐÂY ---
+        // Thêm 'const' vào SpatialInstance* vì star là const
+        std::unordered_map<FeatureType, const SpatialInstance*> neighborMap;
+        
+        for (auto neighbor : star.neighbors) {
+            neighborMap[neighbor->type] = neighbor; // Giờ đã gán được
+        }
+
+        for (const auto* candPtr : relevantCandidates) {
+            const auto& candidate = *candPtr;
+            
+            ColocationInstance instance;
+            instance.reserve(candidate.size());
+            
+            // Lưu ý: ColocationInstance cũng cần phải lưu chứa (const SpatialInstance*)
+            // Nếu struct ColocationInstance của bạn đang lưu (SpatialInstance*), 
+            // bạn cần const_cast (không khuyến khích) hoặc sửa định nghĩa struct đó.
+            instance.push_back(star.center); 
+
+            bool isFullPattern = true;
+
+            for (size_t i = 1; i < candidate.size(); ++i) {
+                auto it = neighborMap.find(candidate[i]);
+                
+                if (it != neighborMap.end()) {
+                    instance.push_back(it->second);
+                } else {
+                    isFullPattern = false;
+                    break; 
+                }
+            }
+
+            if (isFullPattern) {
+                filteredInstances.push_back(instance);
+            }
+        }
+    }
+
+    return filteredInstances;
 }
