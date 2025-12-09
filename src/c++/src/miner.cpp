@@ -6,7 +6,7 @@
 #include <set>
 #include <string>
 
-std::vector<Colocation> JoinlessMiner::mineColocations(double minPrev, NeighborhoodMgr* neighborMgr, const std::vector<SpatialInstance>& instances) {
+std::vector<Colocation> JoinlessMiner::mineColocations(double minPrev, NeighborhoodMgr* neighborhoodMgr, const std::vector<SpatialInstance>& instances) {
     int k = 2;
     std::vector<FeatureType> types = getAllObjectTypes(instances);
     std::map<FeatureType, int> featureCount = countInstancesByFeature(instances);
