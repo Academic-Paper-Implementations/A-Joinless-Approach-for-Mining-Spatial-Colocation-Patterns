@@ -23,3 +23,4 @@ env/
 #Bỏ qua file biên dịch C++
 main
 spatial_index
+/.vs/slnx.sqlite
