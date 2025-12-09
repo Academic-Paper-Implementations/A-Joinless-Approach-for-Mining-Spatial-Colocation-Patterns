@@ -3,12 +3,16 @@
 #include "neighborhood_mgr.h"
 #include <vector>
 #include <map>
+#include <functional>
 
+// Progress callback type: (currentStep, totalSteps, message, percentage)
+using ProgressCallback = std::function<void(int, int, const std::string&, double)>;
 
 class JoinlessMiner {
 private:
     double minPrev;
     NeighborhoodMgr* neighborhoodMgr;
+    ProgressCallback progressCallback;
 
  
     std::vector <ColocationInstance> filterStarInstances(
@@ -30,7 +34,12 @@ private:
     );
 
 public:
-    std::vector<Colocation> mineColocations(double minPrevalence, NeighborhoodMgr* nbrMgr, const std::vector<SpatialInstance>& instances);
+    std::vector<Colocation> mineColocations(
+        double minPrevalence, 
+        NeighborhoodMgr* nbrMgr, 
+        const std::vector<SpatialInstance>& instances,
+        ProgressCallback progressCb = nullptr
+    );
     // Public method
     std::vector<Colocation> generateCandidates(
         const std::vector<Colocation>& prevPrevalent
