@@ -6,19 +6,23 @@
 #include <set>
 #include <string>
 
-std::vector<ColocationRule> JoinlessMiner::mineColocations(double minPrev, double minCondProb, NeighborhoodMgr* neighborMgr, const std::vector<SpatialInstance>& instances) {
+std::vector<Colocation> JoinlessMiner::mineColocations(double minPrev, NeighborhoodMgr* neighborMgr, const std::vector<SpatialInstance>& instances) {
     int k = 2;
     std::vector<FeatureType> types = getAllObjectTypes(instances);
+    std::map<FeatureType, int> featureCount = countInstancesByFeature(instances);
     std::vector<Colocation> prevColocations;
-    std::vector<ColocationInstance> starInstances;
     std::vector<ColocationInstance> cliqueInstances;
-    std::vector<ColocationRule> discoveredRules;
+    std::vector<ColocationInstance> prevCliqueInstances;
+    std::vector<Colocation> allPrevalentColocations;
 
 
     for (auto t : types) prevColocations.push_back({t});
 
     while (!prevColocations.empty()) {
+        std::vector<ColocationInstance> starInstances;
         std::vector<Colocation> candidates = generateCandidates(prevColocations);
+
+        if (candidates.empty()) break;
         for (auto t: types) {
             for (const auto& starNeigh : neighborhoodMgr->getAllStarNeighborhoods()) {
                 if (starNeigh.first == t){
@@ -30,27 +34,32 @@ std::vector<ColocationRule> JoinlessMiner::mineColocations(double minPrev, doubl
         if (k==2){
             cliqueInstances = starInstances;
         }else{
-            candidates = selectCoarsePrevalent(candidates, starInstances, minPrev);
+            candidates = selectPrevColocations(candidates, starInstances, minPrev, featureCount);
             cliqueInstances = filterCliqueInstances(
                 candidates,
-                starInstances
+                starInstances,
+                prevCliqueInstances
             );
         }
         prevColocations = selectPrevColocations(
             candidates,
             cliqueInstances,
-            minPrev
+            minPrev,
+            featureCount
         );
-        std::vector<ColocationRule> newRules = genColocationRule(prevColocations, minCondProb);
 
-        discoveredRules.insert(
-            discoveredRules.end(),
-            newRules.begin(),
-            newRules.end()
-        );
+        if (!prevColocations.empty()) {
+             allPrevalentColocations.insert(
+                 allPrevalentColocations.end(), 
+                 prevColocations.begin(), 
+                 prevColocations.end()
+             );
+        }
+        prevCliqueInstances = std::move(cliqueInstances);
+
         k++;
     }
-    return discoveredRules;
+    return allPrevalentColocations;
 }
 
 
@@ -180,4 +189,118 @@ std::vector<ColocationInstance> JoinlessMiner::filterStarInstances(
     }
 
     return filteredInstances;
+}
+
+
+std::vector<ColocationInstance> JoinlessMiner::filterCliqueInstances(
+    const std::vector<Colocation>& candidates,
+    const std::vector<ColocationInstance>& instances,
+    const std::vector<ColocationInstance>& prevInstances
+) {
+    std::vector<ColocationInstance> filteredInstances;
+    for (const auto& instance : instances) {
+        for (const auto& candidate : candidates) {
+            std::set<FeatureType> instanceFeatures;
+            for (const auto& instPtr : instance) {
+                instanceFeatures.insert(instPtr->type);
+            }
+
+            std::set<FeatureType> candidateSet(candidate.begin(), candidate.end());
+
+            if (std::includes(instanceFeatures.begin(), instanceFeatures.end(),
+                              candidateSet.begin(), candidateSet.end())) {
+                // Check all (k-1)-sized subsets exist in prevInstances
+                bool allSubsetsExist = true;
+                for (size_t i = 0; i < candidate.size(); ++i) {
+                    Colocation subset = candidate;
+                    subset.erase(subset.begin() + i);
+
+                    bool subsetFound = false;
+                    for (const auto& prevInstance : prevInstances) {
+                        std::set<FeatureType> prevInstanceFeatures;
+                        for (const auto& instPtr : prevInstance) {
+                            prevInstanceFeatures.insert(instPtr->type);
+                        }
+
+                        std::set<FeatureType> subsetSet(subset.begin(), subset.end());
+                        if (std::includes(prevInstanceFeatures.begin(), prevInstanceFeatures.end(),
+                                          subsetSet.begin(), subsetSet.end())) {
+                            subsetFound = true;
+                            break;
+                        }
+                    }
+
+                    if (!subsetFound) {
+                        allSubsetsExist = false;
+                        break;
+                    }
+                }
+
+                if (allSubsetsExist) {
+                    filteredInstances.push_back(instance);
+                    break; // No need to check other candidates
+                }
+            }
+        }
+    }
+
+    return filteredInstances;
+}
+
+
+std::vector<Colocation> JoinlessMiner::selectPrevColocations(const std::vector<Colocation>& candidates, const std::vector<ColocationInstance>& instances, double minPrev, const std::map<FeatureType, int>& featureCount) {
+    std::vector<Colocation> coarsePrevalent;
+
+    for (const auto& candidate : candidates) {
+        //create map to track participating instances for each feature
+        //eg: { "A": {"A1", "A2"}, "B": {"B1"} }
+        std::map<FeatureType, std::set<std::string>> participatingInstances;
+
+        std::set<FeatureType> candidateSet(candidate.begin(), candidate.end());
+
+        for (const ColocationInstance& instance : instances) {
+            std::set<FeatureType> instanceFeatures;
+            
+            for (const auto& instPtr : instance) {
+                instanceFeatures.insert(instPtr->type);
+            }
+
+            if (std::includes(instanceFeatures.begin(), instanceFeatures.end(),
+                              candidateSet.begin(), candidateSet.end())) {
+                
+                for (const auto& instPtr : instance) {
+                    FeatureType fType = instPtr->type;
+                    if (candidateSet.find(fType) != candidateSet.end()) {
+                        participatingInstances[fType].insert(instPtr->id);
+                    }
+                }
+            }
+        }
+
+        double min_participation_ratio = 1.0;
+        bool possible = true;
+
+        for (const auto& feature : candidate) {
+            if (featureCount.find(feature) == featureCount.end() || featureCount.at(feature) == 0) {
+                possible = false; 
+                break;
+            }
+            //count total instances of this feature
+            int totalFeatureCount = featureCount.at(feature);
+            //count instances participating in this pattern
+            int participatedCount = participatingInstances[feature].size();
+
+            double ratio = static_cast<double>(participatedCount) / totalFeatureCount;
+            
+            if (ratio < min_participation_ratio) {
+                min_participation_ratio = ratio;
+            }
+        }
+
+        if (possible && min_participation_ratio >= minPrev) {
+            coarsePrevalent.push_back(candidate);
+        }
+    }
+
+    return coarsePrevalent;
 }

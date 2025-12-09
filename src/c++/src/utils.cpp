@@ -6,7 +6,7 @@ std::vector<FeatureType> getAllObjectTypes(const std::vector<SpatialInstance>& i
     std::set<FeatureType> objectTypesSet;
     
     for (const auto& instance : instances) {
-        FeatureType objectType = instance.id.substr(0, 1);
+        FeatureType objectType = instance.type;
         objectTypesSet.insert(objectType);
     }
     

@@ -18,30 +18,21 @@ private:
 
     std::vector <ColocationInstance> filterCliqueInstances(
         const std::vector<Colocation>& candidates,
-        const std::vector<ColocationInstance>& instances
-    );
-
-    std::vector<Colocation> selectCoarsePrevalent(
-        const std::vector<Colocation>& candidates,
         const std::vector<ColocationInstance>& instances,
-        double minPrev
+        const std::vector<ColocationInstance>& prevInstances
     );
 
     std::vector<Colocation> selectPrevColocations(
         const std::vector<Colocation>& candidates,
         const std::vector<ColocationInstance>& instances,
-        double minPrev
+        double minPrev,
+        const std::map<FeatureType, int>& featureCount
     );
 
 public:
-    std::vector<ColocationRule> mineColocations(double minPrevalence, double minCondProb, NeighborhoodMgr* nbrMgr, const std::vector<SpatialInstance>& instances);
+    std::vector<Colocation> mineColocations(double minPrevalence, NeighborhoodMgr* nbrMgr, const std::vector<SpatialInstance>& instances);
     // Public method
     std::vector<Colocation> generateCandidates(
         const std::vector<Colocation>& prevPrevalent
-    );
-
-    std::vector<ColocationRule> genColocationRule(
-        const std::vector<Colocation>& prevalentColocations,
-        double minCondProb
     );
 };
