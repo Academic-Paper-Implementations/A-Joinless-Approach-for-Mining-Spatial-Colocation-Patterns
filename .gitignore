@@ -24,3 +24,4 @@ env/
 main
 spatial_index
 /.vs/slnx.sqlite
+/.vs
