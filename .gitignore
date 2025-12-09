@@ -25,3 +25,4 @@ main
 spatial_index
 /.vs/slnx.sqlite
 /.vs
+/CppProperties.json
