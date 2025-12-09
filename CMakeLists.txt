@@ -13,4 +13,4 @@ include_directories ("${CMAKE_SOURCE_DIR}/src/c++/include")
 file(GLOB SOURCE_FILES "${CMAKE_SOURCE_DIR}/src/c++/src/*.cpp")
 
 # 5. Tạo file chạy .exe
-add_executable (PaperApp ${SOURCE_FILES})
+add_executable (main ${SOURCE_FILES})

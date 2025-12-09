@@ -26,3 +26,4 @@ spatial_index
 /.vs/slnx.sqlite
 /.vs
 /CppProperties.json
+/out/build/x64-Debug
