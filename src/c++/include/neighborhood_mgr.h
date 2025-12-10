@@ -1,9 +1,6 @@
 /**
  * @file neighborhood_mgr.h
- * @brief Star neighborhood management for spatial colocation mining
- * 
- * Provides data structures and methods for building and querying star neighborhoods,
- * which are central to the joinless colocation mining algorithm.
+ * @brief Star neighborhood management for spatial instances
  */
 
 #pragma once
@@ -12,11 +9,10 @@
 #include <vector>
 
 /**
- * @brief Manages star neighborhoods for all spatial instances
+ * @brief NeighborhoodMgr class for managing star neighborhoods of spatial instances
  * 
- * A star neighborhood consists of a center instance and all its spatial neighbors.
- * This class organizes star neighborhoods by feature type for efficient access
- * during the mining process.
+ * Organizes spatial instances into star neighborhoods, where each star consists of
+ * a center instance and all its neighbors within the distance threshold.
  */
 class NeighborhoodMgr {
 private:
@@ -27,17 +23,17 @@ public:
     /**
      * @brief Build star neighborhoods from neighbor pairs
      * 
-     * Constructs star neighborhoods by grouping neighbor pairs around their
-     * center instances. Each instance becomes a center with its neighbors.
+     * Constructs star neighborhoods by grouping neighbor pairs. For each instance,
+     * creates a star with that instance as center and all its neighbors.
      * 
-     * @param pairs Vector of neighbor pairs (from spatial index)
+     * @param pairs Vector of neighbor pairs found by spatial indexing
      */
     void buildFromPairs(const std::vector<std::pair<SpatialInstance, SpatialInstance>>& pairs);
 
     /**
-     * @brief Get the star neighborhood for a specific instance
+     * @brief Get star neighborhood for a specific instance
      * 
-     * @param id Instance ID to look up
+     * @param id Instance ID to search for
      * @return const StarNeighborhood* Pointer to star neighborhood, or nullptr if not found
      */
     const StarNeighborhood* getStarNeighborhood(instanceID id) const;
@@ -46,7 +42,7 @@ public:
      * @brief Get all star neighborhoods organized by feature type
      * 
      * @return const std::unordered_map<FeatureType, std::vector<StarNeighborhood>>& 
-     *         Map from feature types to their star neighborhoods
+     *         Map from feature type to vector of star neighborhoods
      */
     const std::unordered_map<FeatureType, std::vector<StarNeighborhood>>& getAllStarNeighborhoods() const;
 

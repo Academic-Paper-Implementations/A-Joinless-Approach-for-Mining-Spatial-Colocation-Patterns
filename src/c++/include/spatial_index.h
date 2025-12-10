@@ -1,9 +1,6 @@
 /**
  * @file spatial_index.h
  * @brief Spatial indexing and neighbor search functionality
- * 
- * Provides utilities for finding spatial neighbors based on distance thresholds,
- * which is a fundamental operation in spatial colocation mining.
  */
 
 #pragma once
@@ -11,10 +8,10 @@
 #include <vector>
 
 /**
- * @brief Manages spatial indexing and neighbor pair discovery
+ * @brief SpatialIndex class for managing spatial indexing and neighbor searches
  * 
- * Implements spatial neighbor search using distance-based criteria.
- * Currently uses a brute-force approach suitable for moderate-sized datasets.
+ * Provides functionality to find neighboring spatial instances within a distance threshold.
+ * Currently uses a brute-force O(n²) approach for neighbor pair detection.
  */
 class SpatialIndex {
 private:
@@ -41,11 +38,11 @@ public:
      * @brief Find all neighbor pairs within the distance threshold
      * 
      * Uses brute-force comparison (O(n²)) to find all pairs of instances
-     * whose Euclidean distance is less than or equal to the threshold.
+     * that are within the specified distance threshold.
      * 
      * @param instances Vector of all spatial instances to search
-     * @return std::vector<std::pair<SpatialInstance, SpatialInstance>> All neighbor pairs found
-     * @note Returns pairs where first.id < second.id (no duplicates)
+     * @return std::vector<std::pair<SpatialInstance, SpatialInstance>> Vector of neighbor pairs
+     * @note Time complexity: O(n²) where n is the number of instances
      */
     std::vector<std::pair<SpatialInstance, SpatialInstance>> findNeighborPair(const std::vector<SpatialInstance>& instances);
 };

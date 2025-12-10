@@ -2,8 +2,8 @@
  * @file miner.cpp
  * @brief Implementation of the joinless colocation pattern mining algorithm
  * 
- * This file contains the core mining logic including candidate generation,
- * star instance filtering, clique instance filtering, and prevalence calculation.
+ * This file implements the core mining algorithm that discovers prevalent spatial
+ * colocation patterns using star neighborhoods to avoid expensive join operations.
  */
 
 #include "miner.h"
@@ -24,7 +24,8 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
     // Assign parameters to member variables for use in other methods
     this->progressCallback = progressCb;
     
-    int k = 2;
+    // Initialize mining variables
+    int k = 2;  // Start with size-2 patterns
     std::vector<FeatureType> types = getAllObjectTypes(instances);
     std::map<FeatureType, int> featureCount = countInstancesByFeature(instances);
     std::vector<Colocation> prevColocations;
@@ -57,10 +58,7 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
                 "Processing k=" + std::to_string(k) + " patterns...", 
                 progressPercent);
         }
-        
         std::vector<ColocationInstance> starInstances;
-        
-        // Generate candidate patterns for current level k
         std::vector<Colocation> candidates = generateCandidates(prevColocations);
 
         if (candidates.empty()) {
@@ -79,7 +77,6 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
                 progressPercent);
         }
         
-        // Filter star instances for each feature type
         for (auto t: types) {
             for (const auto& starNeigh : neighborhoodMgr->getAllStarNeighborhoods()) {
                 if (starNeigh.first == t){
@@ -88,8 +85,6 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
                 }
             }
         }
-        
-        // For k=2, star instances are clique instances (no further filtering needed)
         if (k==2){
             cliqueInstances = starInstances;
             if (progressCallback) {
@@ -98,8 +93,7 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
                     "Found " + std::to_string(starInstances.size()) + " star instances (k=2)...", 
                     progressPercent);
             }
-        } else {
-            // For k>2, apply coarse filtering and clique instance filtering
+        }else{
             if (progressCallback) {
                 double progressPercent = std::min(95.0, (static_cast<double>(currentIteration) / maxK) * 95.0);
                 progressCallback(currentIteration, maxK, 
@@ -121,8 +115,19 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
             );
         }
         
-        // Select prevalent colocations based on participation ratio
+        if (progressCallback) {
+            double progressPercent = std::min(95.0, (static_cast<double>(currentIteration) / maxK) * 95.0);
+            progressCallback(currentIteration, maxK, 
+                "Selecting final prevalent colocations...", 
+                progressPercent);
+        }
+        
         prevColocations = selectPrevColocations(
+            candidates,
+            cliqueInstances,
+            minPrev,
+            featureCount
+        );
 
         if (!prevColocations.empty()) {
              allPrevalentColocations.insert(
@@ -148,7 +153,7 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
         
         prevCliqueInstances = std::move(cliqueInstances);
 
-        k++;  // Move to next pattern size
+        k++;
     }
     
     if (progressCallback) {
@@ -235,7 +240,7 @@ std::vector<ColocationInstance> JoinlessMiner::filterStarInstances(
     std::vector<ColocationInstance> filteredInstances;
     FeatureType centerType = starNeigh.first;
     
-    // Filter candidates that have this feature type as their first element (center)
+    // Filter candidates to only those with this center type as first element
     std::vector<const Colocation*> relevantCandidates;
     for (const auto& cand : candidates) {
         if (!cand.empty() && cand[0] == centerType) {
@@ -245,17 +250,18 @@ std::vector<ColocationInstance> JoinlessMiner::filterStarInstances(
 
     if (relevantCandidates.empty()) return filteredInstances;
 
-    // Iterate through all star neighborhoods of this feature type
+    // Iterate through each star neighborhood
     for (const auto& star : starNeigh.second) {
         
-        // Build a map from feature type to neighbor instance for fast lookup
-        // Using const pointer because star neighborhood contains const pointers
+        // Build a map of neighbors by feature type for fast lookup
+        // Using const pointer since star is const
         std::unordered_map<FeatureType, const SpatialInstance*> neighborMap;
         
         for (auto neighbor : star.neighbors) {
             neighborMap[neighbor->type] = neighbor;
         }
 
+        // Check each relevant candidate pattern
         for (const auto* candPtr : relevantCandidates) {
             const auto& candidate = *candPtr;
             
@@ -267,19 +273,20 @@ std::vector<ColocationInstance> JoinlessMiner::filterStarInstances(
 
             bool isFullPattern = true;
 
-            // Check if all other features in the candidate pattern exist in this star's neighbors
-
+            // Try to find neighbors matching remaining feature types in candidate
             for (size_t i = 1; i < candidate.size(); ++i) {
                 auto it = neighborMap.find(candidate[i]);
                 
                 if (it != neighborMap.end()) {
                     instance.push_back(it->second);
                 } else {
+                    // Missing a required feature type, pattern incomplete
                     isFullPattern = false;
                     break; 
                 }
             }
 
+            // If all feature types found, add this instance
             if (isFullPattern) {
                 filteredInstances.push_back(instance);
             }
@@ -295,10 +302,12 @@ std::vector<ColocationInstance> JoinlessMiner::filterCliqueInstances(
     const std::vector<ColocationInstance>& instances,
     const std::vector<ColocationInstance>& prevInstances
 ) {
+    // ========================================================================
     // STEP 1: LOOKUP OPTIMIZATION (PRE-CALCULATION)
+    // ========================================================================
     // Instead of iterating through prevInstances in nested loops (O(N*M)),
     // we collect all patterns (sets of FeatureTypes) from prevInstances into a Set.
-    // This reduces existence checking to O(log M) or O(1).
+    // This allows existence checks in O(log M) or O(1) time.
     std::set<std::set<FeatureType>> validSubPatterns;
     for (const auto& prevInst : prevInstances) {
         std::set<FeatureType> pTypes;
@@ -308,13 +317,17 @@ std::vector<ColocationInstance> JoinlessMiner::filterCliqueInstances(
         validSubPatterns.insert(pTypes);
     }
 
+    // ========================================================================
     // STEP 2: MULTI-THREADING PREPARATION
+    // ========================================================================
     // Get maximum number of threads
     int num_threads = omp_get_max_threads();
-    // Create separate buffers for each thread to avoid race conditions during push_back
+    // Create separate buffer for each thread to avoid race conditions on push_back
     std::vector<std::vector<ColocationInstance>> thread_buffers(num_threads);
 
+    // ========================================================================
     // STEP 3: PARALLEL PROCESSING
+    // ========================================================================
     #pragma omp parallel for
     for (size_t i = 0; i < instances.size(); ++i) {
         const auto& instance = instances[i];
@@ -335,12 +348,12 @@ std::vector<ColocationInstance> JoinlessMiner::filterCliqueInstances(
                 
                 bool allSubsetsExist = true;
 
-                // Check all (k-1) subsets of the candidate
+                // Check all (k-1) subsets of candidate
                 for (size_t k = 0; k < candidate.size(); ++k) {
                     // Create subset by removing the k-th element
                     std::set<FeatureType> subsetSet = candidateSet;
                     auto it = subsetSet.begin();
-                    std::advance(it, k);  // Move iterator to position k
+                    std::advance(it, k); // Move iterator to position k
                     subsetSet.erase(it);
 
                     // FAST LOOKUP: Check if subset exists in previous data
@@ -354,13 +367,15 @@ std::vector<ColocationInstance> JoinlessMiner::filterCliqueInstances(
                 if (allSubsetsExist) {
                     // Write to current thread's private buffer (thread-safe)
                     thread_buffers[thread_id].push_back(instance);
-                    break;  // Found matching candidate, no need to check other candidates for this instance
+                    break; // Found matching candidate, no need to check other candidates for this instance
                 }
             }
         }
     }
 
+    // ========================================================================
     // STEP 4: MERGE RESULTS
+    // ========================================================================
     // Aggregate data from thread buffers into main result vector
     std::vector<ColocationInstance> filteredInstances;
     for (const auto& buffer : thread_buffers) {
@@ -379,19 +394,23 @@ std::vector<Colocation> JoinlessMiner::selectPrevColocations(
 {
     std::vector<Colocation> coarsePrevalent;
 
+    // ========================================================================
     // STEP 1: Data structure for aggregation
+    // ========================================================================
     // Key: Candidate (Pattern)
     // Value: Map<FeatureType, Set<InstanceID>> - count unique instances for each feature
     std::map<Colocation, std::map<FeatureType, std::set<std::string>>> candidateStats;
 
-    // Initialize stats map for all candidates (ensures all candidates are present even without instances)
+    // Initialize stats map for all candidates (ensures every candidate has an entry even without instances)
     // This step costs O(C), very fast compared to O(C*I)
     for (const auto& cand : candidates) {
-        candidateStats[cand];  // Create empty entry
+        candidateStats[cand]; // Create empty entry
     }
 
+    // ========================================================================
     // STEP 2: Single pass through instances
-    // Complexity: O(I * K * log(K)) where K is pattern length (usually very small)
+    // ========================================================================
+    // Time complexity: O(I * K * log(K)) where K is pattern length (typically very small)
     for (const ColocationInstance& instance : instances) {
         // 2a. Extract pattern from instance
         // Example: Instance has A1, B1 -> Pattern is {A, B}
@@ -413,11 +432,13 @@ std::vector<Colocation> JoinlessMiner::selectPrevColocations(
         }
     }
 
+    // ========================================================================
     // STEP 3: Calculate ratios and filter (iterate through candidates)
-    // Complexity: O(C * K)
+    // ========================================================================
+    // Time complexity: O(C * K)
     for (const auto& item : candidateStats) {
         const Colocation& candidate = item.first;
-        const auto& participatingMap = item.second;  // Map<Feature, Set<ID>>
+        const auto& participatingMap = item.second; // Map<Feature, Set<ID>>
 
         double min_participation_ratio = 1.0;
         bool possible = true;
@@ -433,7 +454,7 @@ std::vector<Colocation> JoinlessMiner::selectPrevColocations(
             }
             double totalFeatureCount = static_cast<double>(totalIt->second);
 
-            // Get count of instances participating in this pattern
+            // Get count of instances participating in pattern
             int participatedCount = 0;
             auto partIt = participatingMap.find(feature);
             if (partIt != participatingMap.end()) {

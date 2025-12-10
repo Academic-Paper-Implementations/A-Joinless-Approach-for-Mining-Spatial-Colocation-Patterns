@@ -1,10 +1,9 @@
 /**
  * @file types.h
- * @brief Core data structures and type definitions for spatial colocation mining
+ * @brief Core data type definitions for spatial colocation pattern mining
  * 
- * This file defines the fundamental data types used throughout the joinless
- * colocation pattern mining algorithm, including spatial instances, neighborhoods,
- * and colocation patterns.
+ * This file defines the fundamental data structures and type aliases used throughout
+ * the joinless colocation mining algorithm implementation.
  */
 
 #pragma once
@@ -12,39 +11,45 @@
 #include <unordered_map>
 #include <vector>
 
-// Type alias for feature types (e.g., "Restaurant", "Hotel")
+// ============================================================================
+// Type Aliases
+// ============================================================================
+
+/** @brief Type alias for feature types (e.g., "Restaurant", "Hotel") */
 using FeatureType = std::string;
 
-// Type alias for instance identifiers (e.g., "A1", "B2")
+/** @brief Type alias for instance identifiers (e.g., "A1", "B2") */
 using instanceID = std::string;
 
-// Type alias for a colocation pattern (ordered list of feature types)
+/** @brief Type alias for a colocation pattern (set of feature types) */
 using Colocation = std::vector<FeatureType>;
 
-// Type alias for a colocation instance (pointers to spatial instances forming a pattern)
+/** @brief Type alias for a colocation instance (set of spatial instance pointers) */
 using ColocationInstance = std::vector<const struct SpatialInstance*>;
 
-// Type alias for colocation rules (mapping from antecedent to consequent patterns)
+/** @brief Type alias for colocation rules mapping */
 using ColocationRule = std::unordered_map<Colocation, Colocation>;
 
+// ============================================================================
+// Data Structures
+// ============================================================================
 
 /**
- * @brief Represents a single spatial data instance with location and type information
+ * @brief Structure representing a spatial data instance
  * 
- * Each spatial instance has a feature type (e.g., "Restaurant"), a unique identifier,
- * and x,y coordinates representing its location in 2D space.
+ * Each spatial instance has a feature type, unique identifier, and 2D coordinates.
  */
 struct SpatialInstance {
-    FeatureType type;  ///< Feature type of this instance
-    instanceID id;     ///< Unique identifier for this instance
-    double x, y;       ///< Spatial coordinates (x, y)
+    FeatureType type;  ///< Feature type of this instance (e.g., "A", "B")
+    instanceID id;     ///< Unique identifier (e.g., "A1", "B2")
+    double x, y;       ///< 2D spatial coordinates
 };
 
 /**
- * @brief Represents a star neighborhood centered on a spatial instance
+ * @brief Structure representing a star neighborhood
  * 
- * A star neighborhood consists of a center instance and all instances
- * within the distance threshold from the center.
+ * A star neighborhood consists of a center instance and all its neighboring instances
+ * within the distance threshold. This is a key concept in the joinless algorithm.
  */
 struct StarNeighborhood {
     const SpatialInstance* center;                      ///< Center instance of the star

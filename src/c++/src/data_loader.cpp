@@ -16,13 +16,13 @@ std::vector<SpatialInstance> DataLoader::load_csv(const std::string& filepath) {
     for (auto& row : reader) {
         SpatialInstance instance;
         
-        // Map CSV columns to instance fields
+        // Map CSV columns to SpatialInstance fields
         instance.type = row["Feature"].get<FeatureType>();
         
-        // Generate unique ID by concatenating feature type with instance number (e.g., "A1", "B2")
+        // Generate instance ID by concatenating feature type and instance number
+        // Example: Feature "A" with Instance 1 becomes "A1"
         instance.id = instanceID(instance.type + std::to_string(row["Instance"].get<int>()));
         
-        // Extract spatial coordinates
         instance.x = row["LocX"].get<double>();
         instance.y = row["LocY"].get<double>();
         

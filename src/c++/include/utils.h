@@ -1,9 +1,6 @@
 /**
  * @file utils.h
- * @brief Utility functions for spatial instance processing
- * 
- * Provides helper functions for extracting feature types, counting instances,
- * and looking up instances by ID.
+ * @brief Utility helper functions for spatial colocation mining
  */
 
 #pragma once
@@ -14,9 +11,12 @@
 #include <map>
 
 /**
- * @brief Extract all unique feature types from a set of instances
+ * @brief Get all unique feature types from spatial instances
  * 
- * @param instances Vector of spatial instances to process
+ * Extracts and returns a sorted vector of all unique feature types
+ * present in the given instances.
+ * 
+ * @param instances Vector of spatial instances
  * @return std::vector<FeatureType> Sorted vector of unique feature types
  */
 std::vector<FeatureType> getAllObjectTypes(const std::vector<SpatialInstance>& instances);
@@ -24,7 +24,9 @@ std::vector<FeatureType> getAllObjectTypes(const std::vector<SpatialInstance>& i
 /**
  * @brief Count the number of instances for each feature type
  * 
- * @param instances Vector of spatial instances to count
+ * Creates a frequency map showing how many instances exist for each feature type.
+ * 
+ * @param instances Vector of spatial instances
  * @return std::map<FeatureType, int> Map from feature type to instance count
  */
 std::map<FeatureType, int> countInstancesByFeature(const std::vector<SpatialInstance>& instances);
@@ -32,9 +34,12 @@ std::map<FeatureType, int> countInstancesByFeature(const std::vector<SpatialInst
 /**
  * @brief Find a spatial instance by its ID
  * 
+ * Searches for an instance with the specified ID. Returns an empty
+ * SpatialInstance struct if no matching instance is found.
+ * 
  * @param instances Vector of spatial instances to search
  * @param id Instance ID to find
- * @return SpatialInstance The found instance, or empty SpatialInstance{} if not found
+ * @return SpatialInstance The found instance, or empty struct if not found
  */
 SpatialInstance getInstanceByID(
     const std::vector<SpatialInstance>& instances, 

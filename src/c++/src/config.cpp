@@ -14,23 +14,21 @@ AppConfig ConfigLoader::load(const std::string& configPath) {
     AppConfig config;  // Start with default values
     std::ifstream file(configPath);
     
-    // If config file not found, use default values
+    // If file cannot be opened, return default configuration
     if (!file.is_open()) {
         std::cerr << "Warning: Config file not found, using defaults.\n";
         return config;
     }
 
+    // Parse configuration file line by line
     std::string line;
-    
-    // Parse each line in key=value format
     while (std::getline(file, line)) {
         // Skip comments and empty lines
         if (line.empty() || line[0] == '#') continue;
 
+        // Parse key=value pairs
         std::istringstream is_line(line);
         std::string key;
-        
-        // Split line by '=' delimiter
         if (std::getline(is_line, key, '=')) {
             std::string value;
             if (std::getline(is_line, value)) {
@@ -43,6 +41,5 @@ AppConfig ConfigLoader::load(const std::string& configPath) {
             }
         }
     }
-    
     return config;
 };

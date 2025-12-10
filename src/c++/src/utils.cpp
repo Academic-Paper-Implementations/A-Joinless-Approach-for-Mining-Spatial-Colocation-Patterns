@@ -1,22 +1,22 @@
 /**
  * @file utils.cpp
- * @brief Implementation of utility functions for spatial instance processing
+ * @brief Implementation of utility helper functions
  */
 
 #include "utils.h"
 #include <set>
 
-// Extract all unique feature types from instances
+// Get all unique feature types from instances
 std::vector<FeatureType> getAllObjectTypes(const std::vector<SpatialInstance>& instances) {
+    // Use a set to automatically handle uniqueness
     std::set<FeatureType> objectTypesSet;
     
-    // Use set to automatically handle uniqueness
     for (const auto& instance : instances) {
         FeatureType objectType = instance.type;
         objectTypesSet.insert(objectType);
     }
     
-    // Convert set to vector (will be sorted alphabetically)
+    // Convert set to vector (set maintains sorted order)
     return std::vector<FeatureType>(objectTypesSet.begin(), objectTypesSet.end());
 }
 
@@ -25,8 +25,9 @@ std::map<FeatureType, int> countInstancesByFeature(const std::vector<SpatialInst
     std::map<FeatureType, int> featureCount;
     
     for (const auto& instance : instances) {
-        // Extract feature type from instance ID (first character)
-        // Note: This assumes instance IDs are formatted as "A1", "B2", etc.
+        // Extract feature type from instance ID
+        // Assumes ID format is: FeatureType + Number (e.g., "A1", "B2")
+        // Takes first character as feature type
         FeatureType objectType = instance.id.substr(0, 1);
         featureCount[objectType]++;
     }
@@ -35,12 +36,11 @@ std::map<FeatureType, int> countInstancesByFeature(const std::vector<SpatialInst
 }
 
 
-// Find a spatial instance by its ID
 SpatialInstance getInstanceByID(
     const std::vector<SpatialInstance>& instances, 
     const instanceID& id) 
 {
-    // Linear search through all instances
+    // Linear search for instance with matching ID
     for (const auto& instance : instances) {
         if (instance.id == id) {
             return instance;

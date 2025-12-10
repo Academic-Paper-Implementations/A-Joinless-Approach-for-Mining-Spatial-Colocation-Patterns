@@ -9,7 +9,8 @@
 
 void NeighborhoodMgr::buildFromPairs(const std::vector<std::pair<SpatialInstance, SpatialInstance>>& pairs) {
     // Build star neighborhoods from neighbor pairs
-    // Each instance becomes a center with its neighbors grouped around it
+    // A star neighborhood has a center instance and all its neighbors
+    
     for (const auto& pair : pairs) {
         const SpatialInstance& center = pair.first;
         const SpatialInstance& neighbor = pair.second;
@@ -23,10 +24,10 @@ void NeighborhoodMgr::buildFromPairs(const std::vector<std::pair<SpatialInstance
         });
 
         if (it != vec.end()) {
-            // Star neighborhood already exists - add this neighbor to it
+            // Star neighborhood already exists, add this neighbor to it
             it->neighbors.push_back(&neighbor);
         } else {
-            // Create new star neighborhood for this center
+            // Create new star neighborhood with this center
             StarNeighborhood newStarNeigh;
             newStarNeigh.center = &center;
             newStarNeigh.neighbors.push_back(&neighbor);
