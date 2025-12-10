@@ -1,3 +1,15 @@
+/**
+ * @file main.cpp
+ * @brief Entry point for the joinless colocation pattern mining application
+ * 
+ * This program implements the complete pipeline:
+ * 1. Load configuration
+ * 2. Load spatial data from CSV
+ * 3. Build spatial index and find neighbor pairs
+ * 4. Materialize star neighborhoods
+ * 5. Mine prevalent colocation patterns
+ */
+
 #include "config.h"
 #include "data_loader.h"
 #include "spatial_index.h"
@@ -20,7 +32,7 @@ int main(int argc, char* argv[]) {
     auto instances = DataLoader::load_csv(config.datasetPath);
     std::cout << "[DEBUG] Step 2: Loaded " << instances.size() << " instances.\n";
 
-    // 3. Build Spatial Index (Truyền tham số d từ config)
+    // 3. Build Spatial Index (pass distance parameter d from config)
     std::cout << "[DEBUG] Step 3: Building spatial index with d=" << config.neighborDistance << "...\n";
     SpatialIndex spatial_idx(config.neighborDistance);
     auto neighborPairs = spatial_idx.findNeighborPair(instances);
@@ -34,6 +46,8 @@ int main(int argc, char* argv[]) {
     NeighborhoodMgr neighbor_mgr;
     neighbor_mgr.buildFromPairs(neighborPairs);
     std::cout << "[DEBUG] Step 4: Neighborhoods materialized.\n";
+    
+    // Debug output: print all star neighborhoods
     for (const auto& starNeighborhood : neighbor_mgr.getAllStarNeighborhoods()) {
         std::cout << "Star Neighborhoods for Feature: " << starNeighborhood.first << "\n";
         for (const auto& star : starNeighborhood.second) {
@@ -49,7 +63,7 @@ int main(int argc, char* argv[]) {
     std::cout << "[DEBUG] Step 5: Mining colocation patterns with minPrev=" << config.minPrev << "...\n";
     JoinlessMiner miner;
     
-    // Define progress callback
+    // Define progress callback to report mining progress to console
     auto progressCallback = [](int currentStep, int totalSteps, const std::string& message, double percentage) {
         std::cout << "\r[PROGRESS] " << std::fixed << std::setprecision(1) << percentage 
                   << "% (" << currentStep << "/" << totalSteps << ") - " << message;
@@ -64,7 +78,7 @@ int main(int argc, char* argv[]) {
     auto colocations = miner.mineColocations(config.minPrev, &neighbor_mgr, instances, progressCallback);
     std::cout << "[DEBUG] Step 5: Mining completed.\n";
     
-    // In kết quả
+    // Print results
     std::cout << "\nFound " << colocations.size() << " prevalent colocations:\n";
     for (const auto& colocation : colocations) {
         std::cout << "Colocation: ";
@@ -74,6 +88,7 @@ int main(int argc, char* argv[]) {
         }
         std::cout << "\n";
     }
+    
     std::cout << "[DEBUG] All steps completed successfully.\n";
     return 0;
 }
