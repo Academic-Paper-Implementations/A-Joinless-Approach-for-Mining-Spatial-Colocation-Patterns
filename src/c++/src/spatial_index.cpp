@@ -29,12 +29,14 @@ std::vector<std::pair<SpatialInstance, SpatialInstance>> SpatialIndex::findNeigh
     // Time complexity: O(n²) where n is the number of instances
     for (int i = 0; i < N; ++i) {
         for (int j = i + 1; j < N; ++j) {
-            // Calculate distance between instances i and j
-            double dist = euclideanDist(instances[i], instances[j]);
-            
-            // If distance is within threshold, they are neighbors
-            if (dist <= distanceThreshold) {
-                neighborPairs.push_back({instances[i], instances[j]});
+            if (instances[i].type != instances[j].type) {
+                // Calculate distance between instances i and j
+                double dist = euclideanDist(instances[i], instances[j]);
+
+                // If distance is within threshold, they are neighbors
+                if (dist <= distanceThreshold) {
+                    neighborPairs.push_back({ instances[i], instances[j] });
+                }
             }
         }
     }
