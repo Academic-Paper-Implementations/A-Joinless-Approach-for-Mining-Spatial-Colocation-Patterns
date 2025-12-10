@@ -23,5 +23,8 @@ env/
 #Bỏ qua file biên dịch C++
 main
 spatial_index
+/.vs/slnx.sqlite
 /.vs
+/out/build/x64-Debug
 /CppProperties.json
+/CMakeSettings.json
