@@ -21,9 +21,11 @@ std::vector<std::pair<SpatialInstance, SpatialInstance>> SpatialIndex::findNeigh
 
     for (int i = 0; i < N; ++i) {
         for (int j = i + 1; j < N; ++j) {
-            double dist = euclideanDist(instances[i], instances[j]);
-            if (dist <= distanceThreshold) {
-                neighborPairs.push_back({instances[i], instances[j]});
+            if (instances[i].type != instances[j].type){
+                double dist = euclideanDist(instances[i], instances[j]);
+                if (dist <= distanceThreshold) {
+                    neighborPairs.push_back({ instances[i], instances[j] });
+                }
             }
         }
     }

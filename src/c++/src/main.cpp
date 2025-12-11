@@ -10,7 +10,7 @@
 int main(int argc, char* argv[]) {
     // 1. Load Configuration
     std::cout << "[DEBUG] Step 1: Loading configuration...\n";
-    std::string config_path = (argc > 1) ? argv[1] : "../config.txt";
+    std::string config_path = (argc > 1) ? argv[1] : "src/c++/config.txt";
     AppConfig config = ConfigLoader::load(config_path);
     std::cout << "[DEBUG] Step 1: Configuration loaded successfully.\n";
     std::cout << "Running Joinless with d=" << config.neighborDistance << "...\n";
