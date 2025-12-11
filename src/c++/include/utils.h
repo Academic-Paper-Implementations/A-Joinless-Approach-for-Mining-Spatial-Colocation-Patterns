@@ -8,6 +8,7 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <chrono>
 #include <map>
 
 /**
@@ -61,3 +62,23 @@ void findCombinations(
     std::vector<const SpatialInstance*>& currentInstance,
     const std::unordered_map<FeatureType, std::vector<const SpatialInstance*>>& neighborMap,
     std::vector<ColocationInstance>& results);
+
+
+/**
+* @brief Print the duration of a processing step
+* 
+* @param stepName Name of the processing step
+* @param start Start time point
+* @param end End time point
+*/
+void printDuration(const std::string& stepName, std::chrono::high_resolution_clock::time_point start, std::chrono::high_resolution_clock::time_point end);
+
+
+/**
+ * @brief Get current memory usage in megabytes
+ *
+ * Uses Windows API to retrieve the current process's memory usage.
+ *
+ * @return double Memory usage in MB
+ */
+double getMemoryUsageMB();
