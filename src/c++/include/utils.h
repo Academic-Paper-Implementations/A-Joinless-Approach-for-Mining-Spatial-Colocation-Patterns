@@ -44,3 +44,20 @@ std::map<FeatureType, int> countInstancesByFeature(const std::vector<SpatialInst
 SpatialInstance getInstanceByID(
     const std::vector<SpatialInstance>& instances, 
     const instanceID& id);
+
+/**
+* @brief Recursive helper to find all combinations of spatial instances
+*        matching a candidate pattern within a star neighborhood.
+* 
+* @param candidatePattern The candidate colocation pattern being matched
+* @param typeIndex Current index in the candidate pattern being processed
+* @param currentInstance Current partial instance being built
+* @param neighborMap Map of feature types to their neighboring instances
+* @param results Vector to store the resulting colocation instances
+*/
+void findCombinations(
+    const std::vector<FeatureType>& candidatePattern,
+    int typeIndex,
+    std::vector<const SpatialInstance*>& currentInstance,
+    const std::unordered_map<FeatureType, std::vector<const SpatialInstance*>>& neighborMap,
+    std::vector<ColocationInstance>& results);

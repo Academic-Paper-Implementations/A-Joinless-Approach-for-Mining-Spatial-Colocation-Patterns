@@ -50,3 +50,28 @@ SpatialInstance getInstanceByID(
     // Return empty instance if not found
     return SpatialInstance{};
 }
+
+
+void findCombinations(
+    const std::vector<FeatureType>& candidatePattern,
+    int typeIndex,
+    std::vector<const SpatialInstance*>& currentInstance,
+    const std::unordered_map<FeatureType, std::vector<const SpatialInstance*>>& neighborMap,
+    std::vector<ColocationInstance>& results) 
+{
+    // Base case: if we've matched all types in the candidate pattern
+    if (typeIndex >= candidatePattern.size()) {
+        results.push_back(currentInstance);
+        return;
+    }
+    FeatureType currentType = candidatePattern[typeIndex];
+
+    auto it = neighborMap.find(currentType);
+    if (it != neighborMap.end()) {
+        for (const auto* neighbor : it->second) {
+            currentInstance.push_back(neighbor);
+            findCombinations(candidatePattern, typeIndex + 1, currentInstance, neighborMap, results);
+            currentInstance.pop_back();
+        }
+    }
+}

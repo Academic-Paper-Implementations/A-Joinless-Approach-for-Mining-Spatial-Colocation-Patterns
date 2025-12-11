@@ -30,13 +30,6 @@ public:
      */
     void buildFromPairs(const std::vector<std::pair<SpatialInstance, SpatialInstance>>& pairs);
 
-    /**
-     * @brief Get star neighborhood for a specific instance
-     * 
-     * @param id Instance ID to search for
-     * @return const StarNeighborhood* Pointer to star neighborhood, or nullptr if not found
-     */
-    const StarNeighborhood* getStarNeighborhood(instanceID id) const;
     
     /**
      * @brief Get all star neighborhoods organized by feature type
@@ -45,13 +38,4 @@ public:
      *         Map from feature type to vector of star neighborhoods
      */
     const std::unordered_map<FeatureType, std::vector<StarNeighborhood>>& getAllStarNeighborhoods() const;
-
-    /**
-     * @brief Check if two instances are neighbors
-     * 
-     * @param id1 First instance ID
-     * @param id2 Second instance ID
-     * @return bool True if instances are neighbors, false otherwise
-     */
-    bool areNeighbors(instanceID id1, instanceID id2) const;
 };
