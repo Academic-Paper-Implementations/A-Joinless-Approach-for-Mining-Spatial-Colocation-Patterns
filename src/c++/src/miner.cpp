@@ -6,6 +6,8 @@
 #include <set>
 #include <string>
 #include <omp.h> 
+#include <iomanip>
+#include <chrono>
 
 std::vector<Colocation> JoinlessMiner::mineColocations(
     double minPrev, 
@@ -13,7 +15,10 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
     const std::vector<SpatialInstance>& instances,
     ProgressCallback progressCb
 ) {
-    // Gán tham số vào biến thành viên để sử dụng trong các method khác
+	// Start timer
+    auto minerStart = std::chrono::high_resolution_clock::now();
+
+    // Assign parameters to member variables for use in other methods
     this->progressCallback = progressCb;
     
     int k = 2;
@@ -49,7 +54,12 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
                 progressPercent);
         }
         std::vector<ColocationInstance> starInstances;
+
+		// 1. Generate candidate patterns of size k
+        auto t1_start = std::chrono::high_resolution_clock::now();
         std::vector<Colocation> candidates = generateCandidates(prevColocations);
+        auto t1_end = std::chrono::high_resolution_clock::now();
+        printDuration("generateCandidates (k=" + std::to_string(k) + ")", t1_start, t1_end);
 
         if (candidates.empty()) {
             if (progressCallback) {
@@ -67,14 +77,19 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
                 progressPercent);
         }
         
-        for (auto t: types) {
+		// 2. Filter star instances for each candidate
+        auto t2_start = std::chrono::high_resolution_clock::now();
+        for (auto t : types) {
             for (const auto& starNeigh : neighborhoodMgr->getAllStarNeighborhoods()) {
-                if (starNeigh.first == t){
+                if (starNeigh.first == t) {
                     std::vector<ColocationInstance> found = filterStarInstances(candidates, starNeigh);
                     starInstances.insert(starInstances.end(), found.begin(), found.end());
                 }
             }
         }
+        auto t2_end = std::chrono::high_resolution_clock::now();
+        printDuration("filterStarInstances (Total) (k=" + std::to_string(k) + ")", t2_start, t2_end);
+
         if (k==2){
             cliqueInstances = starInstances;
             if (progressCallback) {
@@ -90,7 +105,12 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
                     "Selecting prevalent colocations (coarse filter)...", 
                     progressPercent);
             }
+
+			// 3. Select prevalent colocations using coarse filter
+            auto t3_start = std::chrono::high_resolution_clock::now();
             candidates = selectPrevColocations(candidates, starInstances, minPrev, featureCount);
+            auto t3_end = std::chrono::high_resolution_clock::now();
+            printDuration("selectPrevColocations (Coarse) (k=" + std::to_string(k) + ")", t3_start, t3_end);
             
             if (progressCallback) {
                 double progressPercent = std::min(95.0, (static_cast<double>(currentIteration) / maxK) * 95.0);
@@ -98,11 +118,16 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
                     "Filtering clique instances...", 
                     progressPercent);
             }
+
+			// 4. Filter clique instances for candidates
+            auto t4_start = std::chrono::high_resolution_clock::now();
             cliqueInstances = filterCliqueInstances(
                 candidates,
                 starInstances,
                 prevCliqueInstances
             );
+            auto t4_end = std::chrono::high_resolution_clock::now();
+            printDuration("filterCliqueInstances (k=" + std::to_string(k) + ")", t4_start, t4_end);
         }
         
         if (progressCallback) {
@@ -111,13 +136,17 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
                 "Selecting final prevalent colocations...", 
                 progressPercent);
         }
-        
+
+        auto t5_start = std::chrono::high_resolution_clock::now();
         prevColocations = selectPrevColocations(
             candidates,
             cliqueInstances,
             minPrev,
             featureCount
         );
+        auto t5_end = std::chrono::high_resolution_clock::now();
+        printDuration("selectPrevColocations (Final) (k=" + std::to_string(k) + ")", t5_start, t5_end);
+        
 
         if (!prevColocations.empty()) {
              allPrevalentColocations.insert(
@@ -125,6 +154,8 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
                  prevColocations.begin(), 
                  prevColocations.end()
              );
+
+             std::cout << "[DEBUG] Found " << prevColocations.size() << " prevalent patterns. Details:\n";
              
              if (progressCallback) {
                  double progressPercent = std::min(95.0, (static_cast<double>(currentIteration) / maxK) * 95.0);
@@ -151,6 +182,9 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
             "Mining completed! Total prevalent colocations: " + std::to_string(allPrevalentColocations.size()), 
             100.0);
     }
+
+    auto minerEnd = std::chrono::high_resolution_clock::now();
+    printDuration("TOTAL MINING TIME", minerStart, minerEnd);
     
     return allPrevalentColocations;
 }
@@ -218,7 +252,7 @@ std::vector<Colocation> JoinlessMiner::generateCandidates(
     std::sort(candidates.begin(), candidates.end());
     candidates.erase(std::unique(candidates.begin(), candidates.end()), 
                      candidates.end());
-    
+
     return candidates;
 }
 
@@ -262,22 +296,8 @@ std::vector<ColocationInstance> JoinlessMiner::filterStarInstances(
             // bạn cần const_cast (không khuyến khích) hoặc sửa định nghĩa struct đó.
             instance.push_back(star.center); 
 
-            bool isFullPattern = true;
-
-            for (size_t i = 1; i < candidate.size(); ++i) {
-                auto it = neighborMap.find(candidate[i]);
-                
-                if (it != neighborMap.end()) {
-                    instance.push_back(it->second);
-                } else {
-                    isFullPattern = false;
-                    break; 
-                }
-            }
-
-            if (isFullPattern) {
-                filteredInstances.push_back(instance);
-            }
+			// Recursive function to find combinations
+            findCombinations(candidate, 1, currentInstance, neighborMap, filteredInstances);
         }
     }
 
@@ -435,7 +455,7 @@ std::vector<Colocation> JoinlessMiner::selectPrevColocations(
                 participatedCount = partIt->second.size();
             }
 
-            double ratio = participatedCount / totalFeatureCount;
+            double ratio = (double)participatedCount / totalFeatureCount;
             if (ratio < min_participation_ratio) {
                 min_participation_ratio = ratio;
             }
