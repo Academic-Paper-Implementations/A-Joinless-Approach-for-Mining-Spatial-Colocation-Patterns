@@ -26,3 +26,11 @@ file(GLOB SOURCE_FILES "${CMAKE_SOURCE_DIR}/src/c++/src/*.cpp")
 # ==============================================================================
 # Create executable
 add_executable (main ${SOURCE_FILES})
+
+
+configure_file(
+    "${CMAKE_SOURCE_DIR}/src/c++/config.txt"
+    "${CMAKE_BINARY_DIR}/src/c++/config.txt"
+    COPYONLY
+)
+file(COPY "${CMAKE_SOURCE_DIR}/data" DESTINATION "${CMAKE_BINARY_DIR}/data")
