@@ -13,7 +13,7 @@
 
 int main(int argc, char* argv[]) {
     // Open file to write results
-    std::ofstream out("D:/tai_lieu_hoc_AI/spatial_data_mining/A-Joinless-Approach-for-Mining-Spatial-Colocation-Patterns/mining_report.txt");
+    std::ofstream out("mining_report.txt");
     std::streambuf* coutbuf = std::cout.rdbuf();
     std::cout.rdbuf(out.rdbuf());
     auto programStart = std::chrono::high_resolution_clock::now();

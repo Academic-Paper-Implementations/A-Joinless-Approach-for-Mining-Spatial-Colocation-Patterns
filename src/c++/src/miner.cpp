@@ -8,6 +8,7 @@
 #include <omp.h> 
 #include <iomanip>
 #include <chrono>
+#include <iostream>
 
 std::vector<Colocation> JoinlessMiner::mineColocations(
     double minPrev, 
@@ -258,13 +259,13 @@ std::vector<Colocation> JoinlessMiner::generateCandidates(
 
 
 std::vector<ColocationInstance> JoinlessMiner::filterStarInstances(
-    const std::vector<Colocation>& candidates, 
-    const std::pair<FeatureType, std::vector<StarNeighborhood>>& starNeigh) 
+    const std::vector<Colocation>& candidates,
+    const std::pair<FeatureType, std::vector<StarNeighborhood>>& starNeigh)
 {
     std::vector<ColocationInstance> filteredInstances;
     FeatureType centerType = starNeigh.first;
-    
-    // Lọc candidate (Đoạn này OK)
+
+    // Filter candidates to only those with this center type as first element
     std::vector<const Colocation*> relevantCandidates;
     for (const auto& cand : candidates) {
         if (!cand.empty() && cand[0] == centerType) {
@@ -274,29 +275,28 @@ std::vector<ColocationInstance> JoinlessMiner::filterStarInstances(
 
     if (relevantCandidates.empty()) return filteredInstances;
 
-    // Duyệt qua các ngôi sao
+    // Iterate through each star neighborhood
     for (const auto& star : starNeigh.second) {
-        
-        // --- SỬA LỖI TẠI ĐÂY ---
-        // Thêm 'const' vào SpatialInstance* vì star là const
-        std::unordered_map<FeatureType, const SpatialInstance*> neighborMap;
-        
+
+        // Build a map of neighbors by feature type for fast lookup
+        // Using const pointer since star is const
+        std::unordered_map<FeatureType, std::vector<const SpatialInstance*>> neighborMap;
+
         for (auto neighbor : star.neighbors) {
-            neighborMap[neighbor->type] = neighbor; // Giờ đã gán được
+            neighborMap[neighbor->type].push_back(neighbor);
         }
 
+        // Check each relevant candidate pattern
         for (const auto* candPtr : relevantCandidates) {
             const auto& candidate = *candPtr;
-            
-            ColocationInstance instance;
-            instance.reserve(candidate.size());
-            
-            // Lưu ý: ColocationInstance cũng cần phải lưu chứa (const SpatialInstance*)
-            // Nếu struct ColocationInstance của bạn đang lưu (SpatialInstance*), 
-            // bạn cần const_cast (không khuyến khích) hoặc sửa định nghĩa struct đó.
-            instance.push_back(star.center); 
 
-			// Recursive function to find combinations
+            std::vector<const SpatialInstance*> currentInstance;
+            currentInstance.reserve(candidate.size());
+
+            // Add center instance as first element
+            currentInstance.push_back(star.center);
+
+            // Recursive function to find combinations
             findCombinations(candidate, 1, currentInstance, neighborMap, filteredInstances);
         }
     }
