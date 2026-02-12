@@ -12,5 +12,16 @@ include_directories ("${CMAKE_SOURCE_DIR}/src/c++/include")
 # 4. Tìm tất cả các file .cpp (Thay thế cho args: *.cpp trong tasks.json)
 file(GLOB SOURCE_FILES "${CMAKE_SOURCE_DIR}/src/c++/src/*.cpp")
 
-# 5. Tạo file chạy .exe
+# ==============================================================================
+# Build Target
+# ==============================================================================
+# Create executable
 add_executable (main ${SOURCE_FILES})
+
+
+configure_file(
+    "${CMAKE_SOURCE_DIR}/src/c++/config.txt"
+    "${CMAKE_BINARY_DIR}/src/c++/config.txt"
+    COPYONLY
+)
+file(COPY "${CMAKE_SOURCE_DIR}/data" DESTINATION "${CMAKE_BINARY_DIR}/data")

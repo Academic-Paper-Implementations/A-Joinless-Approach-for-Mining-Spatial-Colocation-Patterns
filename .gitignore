@@ -28,5 +28,6 @@ spatial_index
 /out/build/x64-Debug
 /CppProperties.json
 /CMakeSettings.json
+/mining_report.txt
 /out/build/x64-Release
 /data/new_test.csv
