@@ -101,8 +101,7 @@ public:
     std::vector<Colocation> mineColocations(
         double minPrevalence, 
         NeighborhoodMgr* nbrMgr, 
-        const std::vector<SpatialInstance>& instances,
-        ProgressCallback progressCb = nullptr
+        const std::vector<SpatialInstance>& instances
     );
     
     /**

@@ -21,14 +21,10 @@
 std::vector<Colocation> JoinlessMiner::mineColocations(
     double minPrev, 
     NeighborhoodMgr* neighborhoodMgr, 
-    const std::vector<SpatialInstance>& instances,
-    ProgressCallback progressCb
+    const std::vector<SpatialInstance>& instances
 ) {
 	// Start timer
     auto minerStart = std::chrono::high_resolution_clock::now();
-
-    // Assign parameters to member variables for use in other methods
-    this->progressCallback = progressCb;
     
     // Initialize mining variables
     int k = 2;  // Start with size-2 patterns
@@ -44,52 +40,21 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
     int currentIteration = 0;
     int totalIterations = 0; // Will be updated as we go
 
-    if (progressCallback) {
-        progressCallback(0, maxK, "Initializing mining process...", 0.0);
-    }
-
     // Initialize with size-1 patterns (individual feature types)
     for (auto t : types) prevColocations.push_back({t});
 
     while (!prevColocations.empty()) {
         currentIteration++;
         totalIterations = currentIteration;
-        
-        // Calculate progress: use a conservative estimate that we might go up to maxK
-        // But cap at 95% until we're actually done
-        double progressPercent = std::min(95.0, (static_cast<double>(currentIteration) / maxK) * 95.0);
-        
-        if (progressCallback) {
-            progressCallback(currentIteration, maxK, 
-                "Processing k=" + std::to_string(k) + " patterns...", 
-                progressPercent);
-        }
-        std::vector<ColocationInstance> starInstances;
 
+        std::vector<ColocationInstance> starInstances;
 		// 1. Generate candidate patterns of size k
-        auto t1_start = std::chrono::high_resolution_clock::now();
         std::vector<Colocation> candidates = generateCandidates(prevColocations);
-        auto t1_end = std::chrono::high_resolution_clock::now();
-        printDuration("generateCandidates (k=" + std::to_string(k) + ")", t1_start, t1_end);
 
         if (candidates.empty()) {
-            if (progressCallback) {
-                progressCallback(currentIteration, maxK, 
-                    "No more candidates found. Mining completed.", 
-                    100.0);
-            }
             break;
         }
-        
-        if (progressCallback) {
-            double progressPercent = std::min(95.0, (static_cast<double>(currentIteration) / maxK) * 95.0);
-            progressCallback(currentIteration, maxK, 
-                "Filtering star instances for " + std::to_string(candidates.size()) + " candidates...", 
-                progressPercent);
-        }
-        
 		// 2. Filter star instances for each candidate
-        auto t2_start = std::chrono::high_resolution_clock::now();
         for (auto t : types) {
             for (const auto& starNeigh : neighborhoodMgr->getAllStarNeighborhoods()) {
                 if (starNeigh.first == t) {
@@ -98,105 +63,35 @@ std::vector<Colocation> JoinlessMiner::mineColocations(
                 }
             }
         }
-        auto t2_end = std::chrono::high_resolution_clock::now();
-        printDuration("filterStarInstances (Total) (k=" + std::to_string(k) + ")", t2_start, t2_end);
 
         if (k==2){
             cliqueInstances = starInstances;
-            if (progressCallback) {
-                double progressPercent = std::min(95.0, (static_cast<double>(currentIteration) / maxK) * 95.0);
-                progressCallback(currentIteration, maxK, 
-                    "Found " + std::to_string(starInstances.size()) + " star instances (k=2)...", 
-                    progressPercent);
-            }
         }else{
-            if (progressCallback) {
-                double progressPercent = std::min(95.0, (static_cast<double>(currentIteration) / maxK) * 95.0);
-                progressCallback(currentIteration, maxK, 
-                    "Selecting prevalent colocations (coarse filter)...", 
-                    progressPercent);
-            }
-
 			// 3. Select prevalent colocations using coarse filter
-            auto t3_start = std::chrono::high_resolution_clock::now();
             candidates = selectPrevColocations(candidates, starInstances, minPrev, featureCount);
-            auto t3_end = std::chrono::high_resolution_clock::now();
-            printDuration("selectPrevColocations (Coarse) (k=" + std::to_string(k) + ")", t3_start, t3_end);
-            
-            if (progressCallback) {
-                double progressPercent = std::min(95.0, (static_cast<double>(currentIteration) / maxK) * 95.0);
-                progressCallback(currentIteration, maxK, 
-                    "Filtering clique instances...", 
-                    progressPercent);
-            }
-
 			// 4. Filter clique instances for candidates
-            auto t4_start = std::chrono::high_resolution_clock::now();
             cliqueInstances = filterCliqueInstances(
                 candidates,
                 starInstances,
                 prevCliqueInstances
             );
-            auto t4_end = std::chrono::high_resolution_clock::now();
-            printDuration("filterCliqueInstances (k=" + std::to_string(k) + ")", t4_start, t4_end);
         }
-        
-        if (progressCallback) {
-            double progressPercent = std::min(95.0, (static_cast<double>(currentIteration) / maxK) * 95.0);
-            progressCallback(currentIteration, maxK, 
-                "Selecting final prevalent colocations...", 
-                progressPercent);
-        }
-
-        auto t5_start = std::chrono::high_resolution_clock::now();
         prevColocations = selectPrevColocations(
             candidates,
             cliqueInstances,
             minPrev,
             featureCount
         );
-        auto t5_end = std::chrono::high_resolution_clock::now();
-        printDuration("selectPrevColocations (Final) (k=" + std::to_string(k) + ")", t5_start, t5_end);
-        
-
         if (!prevColocations.empty()) {
              allPrevalentColocations.insert(
                  allPrevalentColocations.end(), 
                  prevColocations.begin(), 
                  prevColocations.end()
              );
-
-             std::cout << "[DEBUG] Found " << prevColocations.size() << " prevalent patterns. Details:\n";
-             
-             if (progressCallback) {
-                 double progressPercent = std::min(95.0, (static_cast<double>(currentIteration) / maxK) * 95.0);
-                 progressCallback(currentIteration, maxK, 
-                     "Found " + std::to_string(prevColocations.size()) + " prevalent k=" + std::to_string(k) + " colocations", 
-                     progressPercent);
-             }
-        } else {
-            if (progressCallback) {
-                double progressPercent = std::min(95.0, (static_cast<double>(currentIteration) / maxK) * 95.0);
-                progressCallback(currentIteration, maxK, 
-                    "No prevalent k=" + std::to_string(k) + " colocations found", 
-                    progressPercent);
-            }
-        }
-        
+        } 
         prevCliqueInstances = std::move(cliqueInstances);
-
         k++;
     }
-    
-    if (progressCallback) {
-        progressCallback(maxK, maxK, 
-            "Mining completed! Total prevalent colocations: " + std::to_string(allPrevalentColocations.size()), 
-            100.0);
-    }
-
-    auto minerEnd = std::chrono::high_resolution_clock::now();
-    printDuration("TOTAL MINING TIME", minerStart, minerEnd);
-    
     return allPrevalentColocations;
 }
 
