@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
         std::cerr << "Cannot open results.txt for writing.\n";
         return 1;
     }
-    // (A) Thông tin Dataset & Config
+    // (A) Thï¿½ng tin Dataset & Config
     outFile << "=== FINAL REPORT ===\n";
     outFile << "Dataset Path:      " << config.datasetPath << "\n";
     outFile << "Total Instances:   " << instances.size() << "\n";
