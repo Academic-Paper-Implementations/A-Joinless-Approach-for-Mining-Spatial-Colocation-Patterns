@@ -1,12 +1,12 @@
 # I/O Paths
-dataset_path=D:/0.FALL2025/DBM301m/A-Joinless-Approach-for-Mining-Spatial-Colocation-Patterns/data/LasVegas_x_y_alphabet_version_03_2.csv
+dataset_path=D:\tai_lieu_hoc_AI\spatial_data_mining\A-Joinless-Approach-for-Mining-Spatial-Colocation-Patterns\data\Toronto_x_y_alphabet_version_new_2.csv
 output_path=results/colocation_rules.txt
 
 # Algorithm Thresholds
-neighbor_distance=160
-min_prevalence=0.15
+neighbor_distance=120
+min_prevalence=0.2
 min_cond_prob=0.5
-percentage_instances=0.2
+percentage_instances=1
 
 # Debug
 debug_mode=true
